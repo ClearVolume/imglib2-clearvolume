@@ -10,6 +10,9 @@
 		<version>6.3.0</version>
 	</parent>
  
+ 	<properties><scijava.jvm.version>1.7</scijava.jvm.version>
+	</properties>
+ 
 	<artifactId>imglib-clearvolume</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 
@@ -19,6 +22,14 @@
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
+		</dependency>
+ 		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-algorithm</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.scif</groupId>
