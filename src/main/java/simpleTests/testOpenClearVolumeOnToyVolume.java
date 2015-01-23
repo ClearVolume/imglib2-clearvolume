@@ -4,17 +4,25 @@ package simpleTests;
  */
 
 
+import ij.IJ;
+
+import java.io.File;
 import java.nio.ByteBuffer;
 
 import net.imglib2.RandomAccess;
+import net.imglib2.algorithm.stats.Normalize;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
+import net.imglib2.img.basictypeaccess.array.DoubleArray;
 import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.type.numeric.real.FloatType;
 import clearvolume.ClearVolume;
 import clearvolume.ClearVolumeUnsignedShortType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
@@ -31,7 +39,118 @@ public class testOpenClearVolumeOnToyVolume {
 //		goBasicStyle();
 //		goImgLibByteType();
 //		goImgLibUnsignedShortType();
-		goImgLibClearVolumeUnsignedShortType();
+//		goImgLibClearVolumeUnsignedShortType();
+//		goImgLibDoubleType();
+//		showNordenImg();
+//		showMansfeldImg();
+		showDrosoImg();
+	}
+
+	private static void showDrosoImg() {
+		final File file = new File( "/Users/jug/Desktop/droso.tif" );
+
+		System.out.print( "\n >> Loading file '" + file.getName() + "' ..." );
+		final long tic = System.currentTimeMillis();
+
+//		final Img< FloatType > img = IO.openFloatImgs( file.getPath() ).get( 0 );
+		final Img< FloatType > img = ImagePlusAdapter.wrapFloat( IJ.openImage( file.getAbsolutePath() ) );
+
+		final long toc = System.currentTimeMillis();
+		System.out.println( String.format( " ...done in %d ms.", toc - tic ) );
+
+		Normalize.normalize( img, new FloatType( 0f ), new FloatType( 1f ) );
+		final ClearVolumeRendererInterface cv = ClearVolume.initRealImg( img, "Img -> ClearVolume", 1024, 1024, 1024, 1024, 0., 1.0 );
+		cv.setVoxelSize( 1., 1., 4. );
+		cv.requestDisplay();
+
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
+	}
+
+	private static void showMansfeldImg() {
+		final File file = new File("/Users/jug/MPI/ProjectMansfeld/Movie01/Hist3_mturq2_800.tif");
+
+		System.out.print( "\n >> Loading file '" + file.getName() + "' ..." );
+		final long tic = System.currentTimeMillis();
+
+//		final ImgFactory< UnsignedShortType > imgFactory = new ArrayImgFactory< UnsignedShortType >();
+//		final Img< UnsignedShortType > img = ( Img< UnsignedShortType > ) IO.openImgs( file.getPath(), imgFactory ).get( 0 );
+		final Img< UnsignedShortType > img = ImagePlusAdapter.wrapNumeric( IJ.openImage( "/Users/jug/MPI/ProjectMansfeld/Movie01/Hist3_mturq2_800.tif" ) );
+
+		final long toc = System.currentTimeMillis();
+		System.out.println( String.format( " ...done in %d ms.", toc - tic ) );
+
+//		Normalize.normalize( img, new UnsignedShortType( 0 ), new UnsignedShortType( 65636 ) );
+		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( ( ArrayImg< UnsignedShortType, ShortArray > ) img, "Img -> ClearVolume", 1024, 1024, 1024, 1024 );
+
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
+	}
+
+	private static void showNordenImg() {
+		final Img< DoubleType > img = ImagePlusAdapter.wrapReal( IJ.openImage( "/Users/jug/Desktop/norden.tif" ) );
+//		Normalize.normalize( img, new DoubleType( 0. ), new DoubleType( 1. ) );
+		final ClearVolumeRendererInterface cv = ClearVolume.showRealImg( img, "Img -> ClearVolume", 512, 512, 512, 512, 0., 300.0 );
+
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
+	}
+
+	private static void goImgLibDoubleType() {
+
+		// Data to show
+
+		final int lResolutionX = 256;
+		final int lResolutionY = lResolutionX;
+		final int lResolutionZ = lResolutionX;
+
+		double max = 0.;
+
+		final ArrayImg< DoubleType, DoubleArray > imgVolumeDataArray = ArrayImgs.doubles( new long[] { lResolutionX, lResolutionY, lResolutionZ } );
+		final RandomAccess< DoubleType > raImg = imgVolumeDataArray.randomAccess();
+
+		for (int z = 0; z < lResolutionZ; z++)
+			for (int y = 0; y < lResolutionY; y++)
+				for (int x = 0; x < lResolutionX; x++)
+				{
+					int lCharValue = (((byte) x ^ (byte) y ^ (byte) z));
+					if (lCharValue < 12)
+						lCharValue = 0;
+					raImg.setPosition( x, 0 );
+					raImg.setPosition( y, 1 );
+					raImg.setPosition( z, 2 );
+					raImg.get().set( lCharValue );
+					max = Math.max( max, lCharValue );
+				}
+
+		// Show
+		final ClearVolumeRendererInterface cv = ClearVolume.showRealArrayImg( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, 0., max );
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
 	}
 
 	private static void goImgLibClearVolumeUnsignedShortType() {
@@ -61,11 +180,18 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-
-		ClearVolume.showClearVolumeUnsignedShortTypeImg( ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showClearVolumeUnsignedShortArrayImgWindow( ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
 	}
 
-	private static void goImgLibUnsignedShortType() {
+	private static void openImgLibUnsignedShortTypeDemo() {
 
 		// Data to show
 
@@ -90,11 +216,18 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-
-		ClearVolume.showUnsignedShortTypeImg( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
 	}
 
-	private static void goImgLibByteType() {
+	private static void openImgLibByteTypeDemo() {
 
 		// Data to show
 
@@ -124,11 +257,18 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-
-		ClearVolume.showByteTypeImg( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.initByteArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		while ( cv.isShowing() ) {
+			try {
+				Thread.sleep( 500 );
+			} catch ( final InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		cv.close();
 	}
 
-	public static void goBasicStyle() {
+	public static void showClearVolumeDemo() {
 
 		// Data to show
 
@@ -155,7 +295,6 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-
 		final ClearVolumeRendererInterface lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(	"ClearVolumeTest",
 				1024,
 				1024,
