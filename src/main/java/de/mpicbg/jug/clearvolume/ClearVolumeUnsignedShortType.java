@@ -135,8 +135,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * Does not apply --> does nothing!
-	 *
+	 * Does not apply -- does nothing!
+	 * 
 	 * @see net.imglib2.type.numeric.ComplexType#setImaginary(float)
 	 */
 	@Override
@@ -144,8 +144,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * Does not apply --> does nothing!
-	 *
+	 * Does not apply -- does nothing!
+	 * 
 	 * @see net.imglib2.type.numeric.ComplexType#setImaginary(double)
 	 */
 	@Override
@@ -206,8 +206,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * Does not apply --> does nothing!
-	 *
+	 * Does not apply -- does nothing!
+	 * 
 	 * @see net.imglib2.type.numeric.ComplexType#complexConjugate()
 	 */
 	@Override

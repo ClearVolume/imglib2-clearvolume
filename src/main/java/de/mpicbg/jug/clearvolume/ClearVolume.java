@@ -33,7 +33,7 @@ import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 public class ClearVolume {
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg< ByteType, ByteArray >.
+	 * Initializes a ClearVolume window for an ArrayImg of ByteType, ByteArray.
 	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
@@ -76,7 +76,7 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Shows ArrayImg< ByteType, ByteArray > in ClearVolume window.
+	 * Shows ArrayImg of ByteType, ByteArray in ClearVolume window.
 	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
@@ -99,7 +99,8 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg< UnsignedShortType, ShortArray >.
+	 * Initializes a ClearVolume window for an ArrayImg of UnsignedShortType,
+	 * ShortArray.
 	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
@@ -149,7 +150,7 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Shows ArrayImg< UnsignedShortType, ShortArray > in ClearVolume window.
+	 * Shows ArrayImg of UnsignedShortType, ShortArray in ClearVolume window.
 	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
@@ -172,8 +173,9 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg< ClearVolumeUnsignedShortType, ByteArray >.
-	 * This method does NOT dupicate the image, but works directly on the
+	 * Initializes a ClearVolume window for an ArrayImg of
+	 * ClearVolumeUnsignedShortType, ByteArray.
+	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
 	 *
 	 * @param imgVolumeDataArray
@@ -216,7 +218,7 @@ public class ClearVolume {
 
 	/**
 	 * Shows a ArrayImg of type ClearVolumeUnsignedShortType.
-	 * This method does NOT dupicate the image, but works directly on the
+	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
 	 *
 	 * @param imgVolumeDataArray
@@ -240,7 +242,7 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg< R, ? >.
+	 * Initializes a ClearVolume window for an ArrayImg of R, ?.
 	 * Note: any given image will be duplicated in memory!
 	 *
 	 * @param imgVolumeDataArray
@@ -333,9 +335,9 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an Img< R extends RealType & NativeType >.
+	 * Initializes a ClearVolume window for an Img of R extends RealType and NativeType.
 	 * Note: any given image will be duplicated in memory!
-	 *
+	 * 
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
