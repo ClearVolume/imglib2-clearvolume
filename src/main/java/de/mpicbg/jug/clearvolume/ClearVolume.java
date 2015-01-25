@@ -1,7 +1,7 @@
 /**
  *
  */
-package clearvolume;
+package de.mpicbg.jug.clearvolume;
 
 import java.nio.ByteBuffer;
 
@@ -24,7 +24,7 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunctions;
-import converter.RealClearVolumeUnsignedShortConverter;
+import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 
 
 /**

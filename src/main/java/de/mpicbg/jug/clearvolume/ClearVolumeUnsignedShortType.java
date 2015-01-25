@@ -1,7 +1,7 @@
 /**
  *
  */
-package clearvolume;
+package de.mpicbg.jug.clearvolume;
 
 import net.imglib2.img.NativeImg;
 import net.imglib2.img.NativeImgFactory;

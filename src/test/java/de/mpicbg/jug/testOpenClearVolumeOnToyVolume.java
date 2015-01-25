@@ -1,4 +1,4 @@
-package simpleTests;
+package de.mpicbg.jug;
 /**
  *
  */
@@ -23,11 +23,11 @@ import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
-import clearvolume.ClearVolume;
-import clearvolume.ClearVolumeUnsignedShortType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunctions;
+import de.mpicbg.jug.clearvolume.ClearVolume;
+import de.mpicbg.jug.clearvolume.ClearVolumeUnsignedShortType;
 
 
 /**

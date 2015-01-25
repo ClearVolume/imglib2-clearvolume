@@ -31,12 +31,12 @@
  * #L%
  */
 
-package converter;
+package de.mpicbg.jug.imglib2.converter;
 
 import net.imglib2.converter.Converter;
 import net.imglib2.display.AbstractLinearRange;
 import net.imglib2.type.numeric.RealType;
-import clearvolume.ClearVolumeUnsignedShortType;
+import de.mpicbg.jug.clearvolume.ClearVolumeUnsignedShortType;
 
 /**
  * @author jug

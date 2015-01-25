@@ -50,6 +50,12 @@
 			<artifactId>clearvolume</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<repositories>
