@@ -16,7 +16,7 @@ import net.imagej.ImageJ;
 public class testImageJPlugin {
 
 	public static void main( final String[] args ) {
-		final String fname = "/Users/jug/Desktop/drosoo.tif";
+		final String fname = "/Users/jug/Desktop/droso.tif";
 		final File file = new File( fname );
 
 		final ImageJ ij = new ImageJ();

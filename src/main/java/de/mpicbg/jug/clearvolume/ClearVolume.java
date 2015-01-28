@@ -60,7 +60,6 @@ public class ClearVolume {
 				pMaxTextureHeight,
 				1);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
-		lClearVolumeRenderer.setVisible(true);
 
 		// get the byte array out of the Img<ByteArray>
 		final byte[] bytes = imgVolumeDataArray.update( null ).getCurrentStorageArray();
@@ -127,7 +126,6 @@ public class ClearVolume {
 				pMaxTextureHeight,
 				1);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
-		lClearVolumeRenderer.setVisible(true);
 
 		// get the byte array out of the Img<ByteArray>
 		final short[] shorts = imgVolumeDataArray.update( null ).getCurrentStorageArray();
@@ -202,7 +200,6 @@ public class ClearVolume {
 				pMaxTextureHeight,
 				1);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
-		lClearVolumeRenderer.setVisible(true);
 
 		// get the byte array out of the Img<ByteArray>
 		final byte[] bytes = imgVolumeDataArray.update( null ).getCurrentStorageArray();
@@ -337,7 +334,7 @@ public class ClearVolume {
 	/**
 	 * Initializes a ClearVolume window for an Img of R extends RealType and NativeType.
 	 * Note: any given image will be duplicated in memory!
-	 * 
+	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
