@@ -3,6 +3,13 @@
  */
 package de.mpicbg.jug.plugins;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imglib2.algorithm.stats.ComputeMinMax;
@@ -53,6 +60,7 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 	private class ClearVolumeThread implements Runnable {
 
+		private final boolean runInNativeFrame = true;
 		private ClearVolumeRendererInterface cv;
 
 		@Override
@@ -62,9 +70,36 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 			setDefaultValues();
 			setMetadataValues();
 
-			cv = ClearVolume.initRealImg( imgPlus, "ClearVolume TableCellView", windowWidth, windowHeight, textureWidth, textureHeight, minIntensity, maxIntensity );
-			cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
-			cv.requestDisplay();
+			if ( runInNativeFrame ) {
+
+				cv = ClearVolume.initRealImg( imgPlus, "ClearVolume TableCellView", windowWidth, windowHeight, textureWidth, textureHeight, false, minIntensity, maxIntensity );
+				cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
+				cv.requestDisplay();
+
+			} else {
+
+				cv = ClearVolume.initRealImg( imgPlus, "ClearVolume TableCellView", windowWidth, windowHeight, textureWidth, textureHeight, true, minIntensity, maxIntensity );
+				cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
+				cv.requestDisplay();
+
+				final JFrame frame = new JFrame( "ClearVolume" );
+				frame.setLayout( new BorderLayout() );
+				final Container container = new Container();
+				container.setLayout( new BorderLayout() );
+				container.add( cv.getNewtCanvasAWT(), BorderLayout.CENTER );
+				frame.setSize( new Dimension( windowWidth, windowHeight ) );
+				frame.add( container );
+				SwingUtilities.invokeLater( new Runnable() {
+
+					@Override
+					public void run() {
+						frame.setVisible( true );
+					}
+
+				} );
+
+			}
+
 		}
 
 		public void dispose() {

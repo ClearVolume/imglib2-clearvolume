@@ -59,7 +59,7 @@ public class testOpenClearVolumeOnToyVolume {
 		System.out.println( String.format( " ...done in %d ms.", toc - tic ) );
 
 		Normalize.normalize( img, new FloatType( 0f ), new FloatType( 1f ) );
-		final ClearVolumeRendererInterface cv = ClearVolume.initRealImg( img, "Img -> ClearVolume", 1024, 1024, 1024, 1024, 0., 1.0 );
+		final ClearVolumeRendererInterface cv = ClearVolume.initRealImg( img, "Img -> ClearVolume", 1024, 1024, 1024, 1024, false, 0., 1.0 );
 		cv.setVoxelSize( 1., 1., 4. );
 		cv.requestDisplay();
 
@@ -87,7 +87,7 @@ public class testOpenClearVolumeOnToyVolume {
 		System.out.println( String.format( " ...done in %d ms.", toc - tic ) );
 
 //		Normalize.normalize( img, new UnsignedShortType( 0 ), new UnsignedShortType( 65636 ) );
-		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( ( ArrayImg< UnsignedShortType, ShortArray > ) img, "Img -> ClearVolume", 1024, 1024, 1024, 1024 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( ( ArrayImg< UnsignedShortType, ShortArray > ) img, "Img -> ClearVolume", 1024, 1024, 1024, 1024, false );
 
 		while ( cv.isShowing() ) {
 			try {
@@ -102,7 +102,7 @@ public class testOpenClearVolumeOnToyVolume {
 	private static void showNordenImg() {
 		final Img< DoubleType > img = ImagePlusAdapter.wrapReal( IJ.openImage( "/Users/jug/Desktop/norden.tif" ) );
 //		Normalize.normalize( img, new DoubleType( 0. ), new DoubleType( 1. ) );
-		final ClearVolumeRendererInterface cv = ClearVolume.showRealImg( img, "Img -> ClearVolume", 512, 512, 512, 512, 0., 300.0 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showRealImg( img, "Img -> ClearVolume", 512, 512, 512, 512, false, 0., 300.0 );
 
 		while ( cv.isShowing() ) {
 			try {
@@ -142,7 +142,7 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-		final ClearVolumeRendererInterface cv = ClearVolume.showRealArrayImg( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, 0., max );
+		final ClearVolumeRendererInterface cv = ClearVolume.showRealArrayImg( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, false, 0., max );
 		while ( cv.isShowing() ) {
 			try {
 				Thread.sleep( 500 );
@@ -180,7 +180,7 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-		final ClearVolumeRendererInterface cv = ClearVolume.showClearVolumeUnsignedShortArrayImgWindow( ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showClearVolumeUnsignedShortArrayImgWindow( ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, false );
 		while ( cv.isShowing() ) {
 			try {
 				Thread.sleep( 500 );
@@ -216,7 +216,7 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.showUnsignedShortArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, false );
 		while ( cv.isShowing() ) {
 			try {
 				Thread.sleep( 500 );
@@ -257,7 +257,7 @@ public class testOpenClearVolumeOnToyVolume {
 				}
 
 		// Show
-		final ClearVolumeRendererInterface cv = ClearVolume.initByteArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512 );
+		final ClearVolumeRendererInterface cv = ClearVolume.initByteArrayImgWindow( imgVolumeDataArray, "Img -> ClearVolume", 512, 512, 512, 512, false );
 		while ( cv.isShowing() ) {
 			try {
 				Thread.sleep( 500 );
@@ -301,7 +301,8 @@ public class testOpenClearVolumeOnToyVolume {
 				1,
 				512,
 				512,
-				1);
+				1, 
+				false);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
 		lClearVolumeRenderer.setVisible(true);
 

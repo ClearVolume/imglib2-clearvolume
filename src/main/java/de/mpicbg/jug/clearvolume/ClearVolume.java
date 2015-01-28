@@ -41,6 +41,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface initByteArrayImgWindow(
@@ -49,7 +52,8 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
 
 		final ClearVolumeRendererInterface lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
 				pWindowName,
@@ -58,7 +62,8 @@ public class ClearVolume {
 				1,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1);
+				1,
+				useInCanvas);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
 
 		// get the byte array out of the Img<ByteArray>
@@ -69,7 +74,6 @@ public class ClearVolume {
 				imgVolumeDataArray.dimension( 0 ),
 				imgVolumeDataArray.dimension( 1 ),
 				imgVolumeDataArray.dimension( 2 ));
-		lClearVolumeRenderer.requestDisplay();
 
 		return lClearVolumeRenderer;
 	}
@@ -83,6 +87,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface showByteArrayImgWindow(
@@ -91,8 +98,9 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
-		final ClearVolumeRendererInterface cv = initByteArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight );
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
+		final ClearVolumeRendererInterface cv = initByteArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
 		cv.requestDisplay();
 		return cv;
 	}
@@ -107,6 +115,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface initUnsignedShortArrayImgWindow(
@@ -115,7 +126,8 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
 
 		final ClearVolumeRendererInterface lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
 				pWindowName,
@@ -124,7 +136,8 @@ public class ClearVolume {
 				2,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1);
+				1,
+				useInCanvas);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
 
 		// get the byte array out of the Img<ByteArray>
@@ -156,6 +169,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface showUnsignedShortArrayImgWindow(
@@ -164,8 +180,9 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
-		final ClearVolumeRendererInterface cv = initUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight );
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
+		final ClearVolumeRendererInterface cv = initUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
 		cv.requestDisplay();
 		return cv;
 	}
@@ -175,13 +192,16 @@ public class ClearVolume {
 	 * ClearVolumeUnsignedShortType, ByteArray.
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
-	 *
+	 * 
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface initClearVolumeUnsignedShortArrayImgWindow(
@@ -190,7 +210,8 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
 		final ClearVolumeRendererInterface lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
 				pWindowName,
 				pWindowWidth,
@@ -198,7 +219,8 @@ public class ClearVolume {
 				2,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1);
+				1,
+				useInCanvas);
 		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
 
 		// get the byte array out of the Img<ByteArray>
@@ -224,6 +246,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface showClearVolumeUnsignedShortArrayImgWindow(
@@ -232,8 +257,9 @@ public class ClearVolume {
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
-			final int pMaxTextureHeight ) {
-		final ClearVolumeRendererInterface cv = initClearVolumeUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight );
+			final int pMaxTextureHeight,
+			final boolean useInCanvas) {
+		final ClearVolumeRendererInterface cv = initClearVolumeUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
 		cv.requestDisplay();
 		return cv;
 	}
@@ -248,6 +274,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface initRealArrayImgWindow(
@@ -257,6 +286,7 @@ public class ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
+			final boolean useInCanvas,
 			final double min,
 			final double max) {
 		return initClearVolumeUnsignedShortArrayImgWindow(
@@ -265,7 +295,8 @@ public class ClearVolume {
 				pWindowWidth,
 				pWindowHeight,
 				pMaxTextureWidth,
-				pMaxTextureHeight );
+				pMaxTextureHeight,
+				useInCanvas);
 	}
 
 	/**
@@ -278,6 +309,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface showRealArrayImg(
@@ -287,6 +321,7 @@ public class ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
+			final boolean useInCanvas,
 			final double min,
 			final double max) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
@@ -295,7 +330,8 @@ public class ClearVolume {
 				pWindowWidth,
 				pWindowHeight,
 				pMaxTextureWidth,
-				pMaxTextureHeight );
+				pMaxTextureHeight,
+				useInCanvas);
 	}
 
 	@SuppressWarnings( "unchecked" )
@@ -341,6 +377,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface initRealImg(
@@ -350,6 +389,7 @@ public class ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
+			final boolean useInCanvas,
 			final double min,
 			final double max) {
 		return initClearVolumeUnsignedShortArrayImgWindow(
@@ -358,7 +398,8 @@ public class ClearVolume {
 				pWindowWidth,
 				pWindowHeight,
 				pMaxTextureWidth,
-				pMaxTextureHeight );
+				pMaxTextureHeight,
+				useInCanvas );
 	}
 
 	/**
@@ -371,6 +412,9 @@ public class ClearVolume {
 	 * @param pWindowHeight
 	 * @param pMaxTextureWidth
 	 * @param pMaxTextureHeight
+	 * @param useInCanvas
+	 *            must be set true if you will use ClearVolume embedded in an
+	 *            AWT or Swing container.
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface showRealImg(
@@ -380,6 +424,7 @@ public class ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
+			final boolean useInCanvas,
 			final double min,
 			final double max) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
@@ -388,7 +433,8 @@ public class ClearVolume {
 				pWindowWidth,
 				pWindowHeight,
 				pMaxTextureWidth,
-				pMaxTextureHeight );
+				pMaxTextureHeight,
+				useInCanvas );
 	}
 
 }
