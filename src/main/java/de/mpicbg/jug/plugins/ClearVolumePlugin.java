@@ -4,7 +4,6 @@
 package de.mpicbg.jug.plugins;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
@@ -12,7 +11,6 @@ import javax.swing.SwingUtilities;
 
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
-import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -21,8 +19,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import clearvolume.renderer.ClearVolumeRendererInterface;
-import de.mpicbg.jug.clearvolume.ClearVolume;
+import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 
 /**
  * @author jug
@@ -34,9 +31,9 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	private Dataset dataset;
 	private ImgPlus< T > imgPlus;
 
-	@Parameter( label = "Window width", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Width of the frame to be opened." )
+	@Parameter( label = "Window width", min = "800", required = true, stepSize = "1", columns = 5, description = "Width of the frame to be opened." )
 	private int windowWidth;
-	@Parameter( label = "Window height", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Height of the frame to be opened." )
+	@Parameter( label = "Window height", min = "600", stepSize = "1", columns = 5, description = "Height of the frame to be opened." )
 	private int windowHeight;
 
 	@Parameter( label = "Texture width", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Width of the texture to be rendered." )
@@ -44,122 +41,31 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	@Parameter( label = "Texture height", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Height of the texture to be rendered." )
 	private int textureHeight;
 
-//	@Parameter( label = "Texture width", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Width of the texture to be rendered." )
-	private double minIntensity;
-//	@Parameter( label = "Texture height", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Height of the texture to be rendered." )
-	private double maxIntensity;
 
-//	@Parameter( label = "VoxelSize.X", min = "0.01", max = "100", stepSize = "0.25", columns = 5, description = "Width of a voxel." )
-	private double voxelSizeX;
-//	@Parameter( label = "VoxelSize.Y", min = "0.01", max = "100", stepSize = "0.25", columns = 5, description = "Height of a voxel." )
-	private double voxelSizeY;
-//	@Parameter( label = "VoxelSize.Z", min = "0.01", max = "100", stepSize = "0.25", columns = 5, description = "Depth of a voxel." )
-	private double voxelSizeZ;
-
-	private ClearVolumeThread cvThread;
-
-	private class ClearVolumeThread implements Runnable {
-
-		private final boolean runInNativeFrame = true;
-		private ClearVolumeRendererInterface cv;
-
-		@Override
-		public void run() {
-			imgPlus = ( ImgPlus< T > ) dataset.getImgPlus();
-
-			setDefaultValues();
-			setMetadataValues();
-
-			if ( runInNativeFrame ) {
-
-				cv = ClearVolume.initRealImg( imgPlus, "ClearVolume TableCellView", windowWidth, windowHeight, textureWidth, textureHeight, false, minIntensity, maxIntensity );
-				cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
-				cv.requestDisplay();
-
-			} else {
-
-				cv = ClearVolume.initRealImg( imgPlus, "ClearVolume TableCellView", windowWidth, windowHeight, textureWidth, textureHeight, true, minIntensity, maxIntensity );
-				cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
-				cv.requestDisplay();
-
-				final JFrame frame = new JFrame( "ClearVolume" );
-				frame.setLayout( new BorderLayout() );
-				final Container container = new Container();
-				container.setLayout( new BorderLayout() );
-				container.add( cv.getNewtCanvasAWT(), BorderLayout.CENTER );
-				frame.setSize( new Dimension( windowWidth, windowHeight ) );
-				frame.add( container );
-				SwingUtilities.invokeLater( new Runnable() {
-
-					@Override
-					public void run() {
-						frame.setVisible( true );
-					}
-
-				} );
-
-			}
-
-		}
-
-		public void dispose() {
-			if ( cv != null ) {
-				cv.setVisible( false );
-				cv.close();
-			}
-		}
-
-		public void resetView() {
-			setDefaultValues();
-			setMetadataValues();
-			cv.resetRotationTranslation();
-			cv.resetBrightnessAndGammaAndTransferFunctionRanges();
-			cv.setVisible( false );
-			cv.setVisible( true );
-		}
-
-	}
-
-	public ClearVolumePlugin() {
-		setDefaultValues();
-	}
+	private JFrame frame = null;
+	private GenericClearVolumeGui< T > panelGui = null;
 
 	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	@Override
 	public void run() {
-		cvThread = new ClearVolumeThread();
-		cvThread.run();
-	}
 
-	private void setDefaultValues() {
-		this.windowWidth = 512;
-		this.windowHeight = 512;
-		this.textureWidth = 1024;
-		this.textureHeight = 1024;
-		this.minIntensity = 0.;
-		this.maxIntensity = 255;
-		this.voxelSizeX = 1.;
-		this.voxelSizeY = 1.;
-		this.voxelSizeZ = 1.;
-	}
+		frame = new JFrame( "ClearVolume" );
+		frame.setLayout( new BorderLayout() );
+		final Dimension screenDims = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setBounds( ( screenDims.width - windowWidth ) / 2, ( screenDims.height - windowHeight ) / 2, windowWidth, windowHeight );
 
-	/**
-	 * Uses the metadata in the ImgPlus to set voxel dimension and intensity
-	 * range.
-	 */
-	public void setMetadataValues() {
-		if ( imgPlus != null ) {
-			this.voxelSizeX = imgPlus.averageScale( 0 );
-			this.voxelSizeY = imgPlus.averageScale( 1 );
-			this.voxelSizeZ = imgPlus.averageScale( 2 );
+		imgPlus = ( ImgPlus< T > ) dataset.getImgPlus();
+		panelGui = new GenericClearVolumeGui< T >( imgPlus, textureWidth, textureHeight );
+		frame.add( panelGui );
+		SwingUtilities.invokeLater( new Runnable() {
 
-			final T min = imgPlus.firstElement().createVariable();
-			final T max = imgPlus.firstElement().createVariable();
-			ComputeMinMax.computeMinMax( imgPlus, min, max );
-			this.minIntensity = min.getRealDouble();
-			this.maxIntensity = max.getRealDouble();
-		}
+			@Override
+			public void run() {
+				frame.setVisible( true );
+			}
+
+		} );
 	}
 }
