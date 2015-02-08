@@ -1,6 +1,8 @@
 package de.mpicbg.jug.clearvolume.gui;
 
-import net.imagej.ImgPlus;
+import java.util.List;
+
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
@@ -9,7 +11,7 @@ import de.mpicbg.jug.clearvolume.ClearVolume;
 public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> implements Runnable {
 
 	private ClearVolumeRendererInterface cv;
-	private final ImgPlus< T > img;
+	private List< RandomAccessibleInterval< T >> images;;
 
 	private int textureWidth;
 	private int textureHeight;
@@ -22,13 +24,13 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	/**
 	 * @param ctnrClearVolume
 	 */
-	public ClearVolumeManager( final ImgPlus< T > imgToShow ) {
-		this( imgToShow, 512, 512 );
+	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow ) {
+		this( imagesToShow, 512, 512 );
 	}
 
-	public ClearVolumeManager( final ImgPlus< T > imgToShow, final int textureWidth, final int textureHeight ) {
+	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow, final int textureWidth, final int textureHeight ) {
 
-		this.img = imgToShow;
+		this.images = imagesToShow;
 		this.textureWidth = textureWidth;
 		this.textureHeight = textureHeight;
 		this.minIntensity = 0.;
@@ -40,7 +42,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 	@Override
 	public void run() {
-		cv = ClearVolume.initRealImg( img, "Generic ClearVolume GUI",
+		cv = ClearVolume.initRealImgs( images, "Generic ClearVolume GUI",
 									  512, 512,
 									  textureWidth, textureHeight,
 									  true,
@@ -56,8 +58,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 	public void updateView() {
 		cv.notifyUpdateOfVolumeRenderingParameters();
-		cv.setVisible( false );
-		cv.setVisible( true );
+		cv.requestDisplay();
 	}
 
 	public void close() {
@@ -70,8 +71,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 		return cv;
 	}
 
-	public ImgPlus< T > getImgPlus() {
-		return img;
+	public List< RandomAccessibleInterval< T >> getChannelImages() {
+		return images;
 	}
 
 	public void toggleBox() {
@@ -97,15 +98,15 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	}
 
 	/**
-	 * Sets the size of the texture to use. Caling this method has an effect
+	 * Sets the size of the texture to use. Calling this method has an effect
 	 * only before <code>run()</code> is called for the first time!
 	 *
 	 * @param textureWidth
 	 * @param textureHeight
 	 */
 	public void setTextureSize( final int textureWidth, final int textureHeight ) {
-		// TODO Auto-generated method stub
-
+		this.textureHeight = textureHeight;
+		this.textureWidth = textureWidth;
 	}
 
 	public int getTextureWidth() {

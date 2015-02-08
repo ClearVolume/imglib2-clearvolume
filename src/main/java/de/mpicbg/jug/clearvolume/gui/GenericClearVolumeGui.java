@@ -8,6 +8,8 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -19,9 +21,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import net.imagej.ImgPlus;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 import clearvolume.renderer.ControlJPanel;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -51,6 +55,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private int textureHeight;
 
 	private ImgPlus< T > imgPlus;
+	private List< RandomAccessibleInterval< T >> images;
 	private ClearVolumeManager< T > cvManager;
 
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus ) {
@@ -60,6 +65,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus, final int textureWidth, final int textureHeight ) {
 		super( true );
 
+		this.imgPlus = imgPlus;
+		images = new ArrayList< RandomAccessibleInterval< T >>();
 		setTextureSize( textureWidth, textureHeight );
 
 		if ( imgPlus != null ) {
@@ -78,30 +85,51 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public void setImgPlus( final ImgPlus< T > imgPlus ) {
 		if ( imgPlus == null ) return;
 
+		// find out if this is the initial call or if CV is reinitialized
 		boolean isFirstTime = false;
-		if ( this.imgPlus == null ) isFirstTime = true;
-		this.imgPlus = imgPlus;
+		if ( images.size() == 0 ) {
+			isFirstTime = true;
 
-		double oldMin = 0, oldMax = 255;
-		double oldVoxelSizeX = 1, oldVoxelSizeY = 1, oldVoxelSizeZ = 1;
+			// if given imgPlus has multiple channels: separate them!
+			if ( imgPlus.numDimensions() == 3 ) {
+				images.add( imgPlus );
+			} else if ( imgPlus.numDimensions() == 4 ) {
+				for ( int channel = 0; channel < imgPlus.dimension( 2 ); channel++ ) {
+					final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
+					images.add( rai );
+				}
+			}
+		}
+
+		// remember current (soon to be old) parameter values
+		double curMin = 0, curMax = 255;
+		double curVoxelSizeX = 1, curVoxelSizeY = 1, curVoxelSizeZ = 1;
 		if ( cvManager != null ) {
-			oldMin = cvManager.getMinIntensity();
-			oldMax = cvManager.getMaxIntensity();
-			oldVoxelSizeX = cvManager.getVoxelSizeX();
-			oldVoxelSizeY = cvManager.getVoxelSizeY();
-			oldVoxelSizeZ = cvManager.getVoxelSizeZ();
+			curMin = cvManager.getMinIntensity();
+			curMax = cvManager.getMaxIntensity();
+			curVoxelSizeX = cvManager.getVoxelSizeX();
+			curVoxelSizeY = cvManager.getVoxelSizeY();
+			curVoxelSizeZ = cvManager.getVoxelSizeZ();
 			cvManager.close();
 		}
-		cvManager = new ClearVolumeManager< T >( imgPlus, textureWidth, textureHeight );
+
+		// instantiate a NEW ClearVolumeManager
+		System.out.println( String.format( "Restarting with %d/%d.", textureWidth, textureHeight ) );
+		cvManager = new ClearVolumeManager< T >( images, textureWidth, textureHeight );
 		if ( isFirstTime ) {
 			final T min = imgPlus.firstElement().createVariable();
 			final T max = imgPlus.firstElement().createVariable();
 			ComputeMinMax.computeMinMax( imgPlus, min, max );
 			cvManager.setIntensityValues( min.getRealDouble(), max.getRealDouble() );
-			cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 2 ) );
+
+			if ( imgPlus.numDimensions() == 3 ) {
+				cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 2 ) );
+			} else if ( imgPlus.numDimensions() == 4 ) {
+				cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 3 ) );
+			}
 		} else {
-			cvManager.setIntensityValues( oldMin, oldMax );
-			cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
+			cvManager.setIntensityValues( curMin, curMax );
+			cvManager.setVoxelSize( curVoxelSizeX, curVoxelSizeY, curVoxelSizeZ );
 		}
 		cvManager.run();
 
@@ -223,13 +251,21 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		final JLabel lblMinInt = new JLabel( "Min. intensity" );
 		txtMinInt = new JTextField();
+		txtMinInt.setActionCommand( "Restart" );
+		txtMinInt.addActionListener( this );
 		final JLabel lblMaxInt = new JLabel( "Max. intensity" );
 		txtMaxInt = new JTextField();
+		txtMaxInt.setActionCommand( "Restart" );
+		txtMaxInt.addActionListener( this );
 
 		final JLabel lblTextureWidth = new JLabel( "Texture width" );
 		txtTextureWidth = new JTextField();
+		txtTextureWidth.setActionCommand( "Restart" );
+		txtTextureWidth.addActionListener( this );
 		final JLabel lblTextureHeight = new JLabel( "Texture height" );
 		txtTextureHeight = new JTextField();
+		txtTextureHeight.setActionCommand( "Restart" );
+		txtTextureHeight.addActionListener( this );
 
 		panelControlsHelper.add( lblMinInt );
 		panelControlsHelper.add( txtMinInt );
@@ -243,7 +279,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
 
 		buttonReinitializeView = new JButton( "Set" );
@@ -251,7 +287,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonReinitializeView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
 		panelControls.add( shrinkingHelper );
 
 		// Parameters that require a view update
@@ -261,10 +297,16 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		final JLabel lblVoxelSizeX = new JLabel( "VoxelDimension.X" );
 		txtVoxelSizeX = new JTextField();
+		txtVoxelSizeX.setActionCommand( "UpdateView" );
+		txtVoxelSizeX.addActionListener( this );
 		final JLabel lblVoxelSizeY = new JLabel( "VoxelDimension.Y" );
 		txtVoxelSizeY = new JTextField();
+		txtVoxelSizeY.setActionCommand( "UpdateView" );
+		txtVoxelSizeY.addActionListener( this );
 		final JLabel lblVoxelSizeZ = new JLabel( "VoxelDimension.Z" );
 		txtVoxelSizeZ = new JTextField();
+		txtVoxelSizeZ.setActionCommand( "UpdateView" );
+		txtVoxelSizeZ.addActionListener( this );
 
 		panelControlsHelper.add( lblVoxelSizeX );
 		panelControlsHelper.add( txtVoxelSizeX );
@@ -340,11 +382,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	@Override
 	public void actionPerformed( final ActionEvent e ) {
 
-		if ( e.getSource().equals( buttonReinitializeView ) ) {
+		if ( e.getSource().equals( buttonReinitializeView ) || e.getActionCommand().equals( "Restart" ) ) {
 			activateGuiValues();
 			// this resets the existing imgPlus and thereby rebuilds/resets all
 			setImgPlus( imgPlus );
-		} else if ( e.getSource().equals( buttonUpdateView ) ) {
+		} else if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
 			activateGuiValues();
 			cvManager.updateView();
 		} else if ( e.getSource().equals( buttonResetView ) ) {

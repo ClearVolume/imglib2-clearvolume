@@ -4,6 +4,8 @@
 package de.mpicbg.jug.clearvolume;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
@@ -11,7 +13,6 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
-import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
@@ -23,6 +24,7 @@ import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
+import clearvolume.transferf.TransferFunction;
 import clearvolume.transferf.TransferFunctions;
 import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 
@@ -33,9 +35,9 @@ import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 public class ClearVolume {
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg of ByteType, ByteArray.
+	 * Initializes a ClearVolume window for some ArrayImgs of ByteType, ByteArray.
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -46,8 +48,8 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static ClearVolumeRendererInterface initByteArrayImgWindow(
-			final ArrayImg< ByteType, ByteArray > imgVolumeDataArray,
+	public static ClearVolumeRendererInterface initByteArrayImgs(
+			final List< ArrayImg< ByteType, ByteArray > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -62,26 +64,25 @@ public class ClearVolume {
 				1,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1,
+				channelImgs.size(),
 				useInCanvas);
-		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
-
-		// get the byte array out of the Img<ByteArray>
-		final byte[] bytes = imgVolumeDataArray.update( null ).getCurrentStorageArray();
-
-		lClearVolumeRenderer.setCurrentRenderLayer(0);
-		lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
-				imgVolumeDataArray.dimension( 0 ),
-				imgVolumeDataArray.dimension( 1 ),
-				imgVolumeDataArray.dimension( 2 ));
-
+		for (int channel=0; channel<channelImgs.size(); channel++) {
+			lClearVolumeRenderer.setCurrentRenderLayer(channel);
+			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
+			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+					channelImgs.get( channel ).dimension( 0 ),
+					channelImgs.get( channel ).dimension( 1 ),
+					channelImgs.get( channel ).dimension( 2 ));
+//			lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
+			lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGradientForColor( channel ));
+		}
 		return lClearVolumeRenderer;
 	}
 
 	/**
-	 * Shows ArrayImg of ByteType, ByteArray in ClearVolume window.
+	 * Shows ArrayImgs of ByteType, ByteArray in ClearVolume.
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -92,24 +93,24 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static ClearVolumeRendererInterface showByteArrayImgWindow(
-			final ArrayImg< ByteType, ByteArray > imgVolumeDataArray,
+	public static ClearVolumeRendererInterface showByteArrayImgs(
+			final List< ArrayImg< ByteType, ByteArray > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
 			final boolean useInCanvas) {
-		final ClearVolumeRendererInterface cv = initByteArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
-		cv.requestDisplay();
+		final ClearVolumeRendererInterface cv = initByteArrayImgs( channelImgs, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
+//		cv.requestDisplay();
 		return cv;
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg of UnsignedShortType,
+	 * Initializes a ClearVolume window for some ArrayImgs of UnsignedShortType,
 	 * ShortArray.
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -120,8 +121,8 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static ClearVolumeRendererInterface initUnsignedShortArrayImgWindow(
-			final ArrayImg< UnsignedShortType, ShortArray > imgVolumeDataArray,
+	public static ClearVolumeRendererInterface initUnsignedShortArrayImgs(
+			final List< ArrayImg< UnsignedShortType, ShortArray > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -136,34 +137,33 @@ public class ClearVolume {
 				2,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1,
+				channelImgs.size(),
 				useInCanvas);
-		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
+		for (int channel=0; channel<channelImgs.size(); channel++) {
+			lClearVolumeRenderer.setCurrentRenderLayer(channel);
 
-		// get the byte array out of the Img<ByteArray>
-		final short[] shorts = imgVolumeDataArray.update( null ).getCurrentStorageArray();
-		final byte[] bytes = new byte[ shorts.length * 2 ];
-
-		int i = 0;
-		for ( final short s : shorts ) {
-			bytes[ i ] = ( byte ) ( s & 0xff );
-			bytes[ i + 1 ] = ( byte ) ( ( s >> 8 ) & 0xff );
-			i += 2;
+			// get the byte array out of the Img<ByteArray>
+			final short[] shorts = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
+			final byte[] bytes = new byte[ shorts.length * 2 ];
+			int i = 0;
+			for ( final short s : shorts ) {
+				bytes[ i ] = ( byte ) ( s & 0xff );
+				bytes[ i + 1 ] = ( byte ) ( ( s >> 8 ) & 0xff );
+				i += 2;
+			}
+			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+					channelImgs.get( channel ).dimension( 0 ),
+					channelImgs.get( channel ).dimension( 1 ),
+					channelImgs.get( channel ).dimension( 2 ));
+			lClearVolumeRenderer.setTransferFunction( getTransferFunctionForChannel( channel ) );
 		}
-
-		lClearVolumeRenderer.setCurrentRenderLayer(0);
-		lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
-				imgVolumeDataArray.dimension( 0 ),
-				imgVolumeDataArray.dimension( 1 ),
-				imgVolumeDataArray.dimension( 2 ));
-
 		return lClearVolumeRenderer;
 	}
 
 	/**
-	 * Shows ArrayImg of UnsignedShortType, ShortArray in ClearVolume window.
+	 * Shows ArrayImgs of UnsignedShortType, ShortArray in ClearVolume.
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -174,21 +174,21 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static ClearVolumeRendererInterface showUnsignedShortArrayImgWindow(
-			final ArrayImg< UnsignedShortType, ShortArray > imgVolumeDataArray,
+	public static ClearVolumeRendererInterface showUnsignedShortArrayImgs(
+			final List< ArrayImg< UnsignedShortType, ShortArray > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
 			final boolean useInCanvas) {
-		final ClearVolumeRendererInterface cv = initUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
-		cv.requestDisplay();
+		final ClearVolumeRendererInterface cv = initUnsignedShortArrayImgs( channelImgs, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
+//		cv.requestDisplay();
 		return cv;
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg of
+	 * Initializes a ClearVolume window for some ArrayImgs of
 	 * ClearVolumeUnsignedShortType, ByteArray.
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
@@ -204,8 +204,8 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static ClearVolumeRendererInterface initClearVolumeUnsignedShortArrayImgWindow(
-			final ArrayImg< ClearVolumeUnsignedShortType, ByteArray > imgVolumeDataArray,
+	public static ClearVolumeRendererInterface initClearVolumeUnsignedShortArrayImg(
+			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImages,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -219,28 +219,27 @@ public class ClearVolume {
 				2,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				1,
+				channelImages.size(),
 				useInCanvas);
-		lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
 
-		// get the byte array out of the Img<ByteArray>
-		final byte[] bytes = imgVolumeDataArray.update( null ).getCurrentStorageArray();
-
-		lClearVolumeRenderer.setCurrentRenderLayer(0);
-		lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
-				imgVolumeDataArray.dimension( 0 ),
-				imgVolumeDataArray.dimension( 1 ),
-				imgVolumeDataArray.dimension( 2 ));
-
+		for (int channel=0; channel<channelImages.size(); channel++) {
+			lClearVolumeRenderer.setCurrentRenderLayer(channel);
+			final byte[] bytes = channelImages.get( channel ).update( null ).getCurrentStorageArray();
+			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+					channelImages.get( channel ).dimension( 0 ),
+					channelImages.get( channel ).dimension( 1 ),
+					channelImages.get( channel ).dimension( 2 ));
+			lClearVolumeRenderer.setTransferFunction( getTransferFunctionForChannel( channel ) );
+		}
 		return lClearVolumeRenderer;
 	}
 
 	/**
-	 * Shows a ArrayImg of type ClearVolumeUnsignedShortType.
+	 * Shows some ArrayImgs of type ClearVolumeUnsignedShortType.
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -252,88 +251,41 @@ public class ClearVolume {
 	 * @return
 	 */
 	public static ClearVolumeRendererInterface showClearVolumeUnsignedShortArrayImgWindow(
-			final ArrayImg< ClearVolumeUnsignedShortType, ByteArray > imgVolumeDataArray,
+			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
 			final boolean useInCanvas) {
-		final ClearVolumeRendererInterface cv = initClearVolumeUnsignedShortArrayImgWindow( imgVolumeDataArray, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
+		final ClearVolumeRendererInterface cv = initClearVolumeUnsignedShortArrayImg( channelImgs, pWindowName, pWindowWidth, pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
 		cv.requestDisplay();
 		return cv;
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an ArrayImg of R, ?.
-	 * Note: any given image will be duplicated in memory!
 	 *
-	 * @param imgVolumeDataArray
-	 * @param pWindowName
-	 * @param pWindowWidth
-	 * @param pWindowHeight
-	 * @param pMaxTextureWidth
-	 * @param pMaxTextureHeight
-	 * @param useInCanvas
-	 *            must be set true if you will use ClearVolume embedded in an
-	 *            AWT or Swing container.
+	 * @param channelImages
+	 * @param min
+	 * @param max
 	 * @return
 	 */
-	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface initRealArrayImgWindow(
-			final ArrayImg< R, ? > imgVolumeDataArray,
-			final String pWindowName,
-			final int pWindowWidth,
-			final int pWindowHeight,
-			final int pMaxTextureWidth,
-			final int pMaxTextureHeight,
-			final boolean useInCanvas,
-			final double min,
-			final double max) {
-		return initClearVolumeUnsignedShortArrayImgWindow(
-				makeClearVolumeUnsignedShortTypeCopy(imgVolumeDataArray, min, max),
-				pWindowName,
-				pWindowWidth,
-				pWindowHeight,
-				pMaxTextureWidth,
-				pMaxTextureHeight,
-				useInCanvas);
+	public static < ST extends RealType< ST > & NativeType< ST > > List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>
+	makeClearVolumeUnsignedShortTypeCopies( final List<RandomAccessibleInterval< ST >> channelImages, final double min, final double max ) {
+		final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >> ret = new ArrayList< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>();
+		for ( final RandomAccessibleInterval< ST > channelImg : channelImages ) {
+			ret.add( makeClearVolumeUnsignedShortTypeCopy( channelImg, min, max ) );
+		}
+		return ret;
 	}
 
 	/**
-	 * Shows any RealType ArrayImg in ClearVolume.
-	 * Note: any given image will be duplicated in memory!
 	 *
-	 * @param imgVolumeDataArray
-	 * @param pWindowName
-	 * @param pWindowWidth
-	 * @param pWindowHeight
-	 * @param pMaxTextureWidth
-	 * @param pMaxTextureHeight
-	 * @param useInCanvas
-	 *            must be set true if you will use ClearVolume embedded in an
-	 *            AWT or Swing container.
+	 * @param source
+	 * @param min
+	 * @param max
 	 * @return
 	 */
-	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface showRealArrayImg(
-			final ArrayImg< R, ? > imgVolumeDataArray,
-			final String pWindowName,
-			final int pWindowWidth,
-			final int pWindowHeight,
-			final int pMaxTextureWidth,
-			final int pMaxTextureHeight,
-			final boolean useInCanvas,
-			final double min,
-			final double max) {
-		return showClearVolumeUnsignedShortArrayImgWindow(
-				makeClearVolumeUnsignedShortTypeCopy(imgVolumeDataArray, min, max),
-				pWindowName,
-				pWindowWidth,
-				pWindowHeight,
-				pMaxTextureWidth,
-				pMaxTextureHeight,
-				useInCanvas);
-	}
-
 	@SuppressWarnings( "unchecked" )
 	public static < ST extends RealType< ST > & NativeType< ST > > ArrayImg< ClearVolumeUnsignedShortType, ByteArray >
 	makeClearVolumeUnsignedShortTypeCopy( final RandomAccessibleInterval< ST > source, final double min, final double max ) {
@@ -352,6 +304,13 @@ public class ClearVolume {
 		return ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) target;
 	}
 
+
+	/**
+	 *
+	 * @param source
+	 * @param target
+	 * @param converter
+	 */
 	private static < T1 extends Type< T1 >, T2 extends Type< T2 >> void copy( final RandomAccessible< T1 > source, final IterableInterval< T2 > target, final Converter< T1, T2 > converter ) {
 		// create a cursor that automatically localizes itself on every move
 		final Cursor< T2 > targetCursor = target.localizingCursor();
@@ -371,10 +330,10 @@ public class ClearVolume {
 	}
 
 	/**
-	 * Initializes a ClearVolume window for an Img of R extends RealType and NativeType.
+	 * Initializes a ClearVolume window for some Imgs of R extends RealType and NativeType.
 	 * Note: any given image will be duplicated in memory!
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImages
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -385,8 +344,8 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface initRealImg(
-			final Img< R > imgVolumeDataArray,
+	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface initRealImgs(
+			final List< RandomAccessibleInterval< R >> channelImages,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -395,8 +354,8 @@ public class ClearVolume {
 			final boolean useInCanvas,
 			final double min,
 			final double max) {
-		return initClearVolumeUnsignedShortArrayImgWindow(
-				makeClearVolumeUnsignedShortTypeCopy(imgVolumeDataArray, min, max),
+		return initClearVolumeUnsignedShortArrayImg(
+				makeClearVolumeUnsignedShortTypeCopies(channelImages, min, max),
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -409,7 +368,7 @@ public class ClearVolume {
 	 * Can show any RealType Img in ClearVolume.
 	 * Note: any given image will be duplicated in memory!
 	 *
-	 * @param imgVolumeDataArray
+	 * @param channelImgs
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -420,8 +379,8 @@ public class ClearVolume {
 	 *            AWT or Swing container.
 	 * @return
 	 */
-	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface showRealImg(
-			final Img< R > imgVolumeDataArray,
+	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface showRealImgs(
+			final List< RandomAccessibleInterval< R > > channelImgs,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -431,7 +390,7 @@ public class ClearVolume {
 			final double min,
 			final double max) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
-				makeClearVolumeUnsignedShortTypeCopy(imgVolumeDataArray, min, max),
+				makeClearVolumeUnsignedShortTypeCopies(channelImgs, min, max),
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -439,5 +398,21 @@ public class ClearVolume {
 				pMaxTextureHeight,
 				useInCanvas );
 	}
+
+	/**
+	 * @param channel
+	 * @return
+	 */
+	private static TransferFunction getTransferFunctionForChannel( final int channel ) {
+		switch ( channel % 5 ) {
+		case 0: return TransferFunctions.getGrayLevel();
+		case 1: return TransferFunctions.getGreenGradient();
+		case 2: return TransferFunctions.getRedGradient();
+		case 3: return TransferFunctions.getBlueGradient();
+		case 4: return TransferFunctions.getRainbow();
+		}
+		return TransferFunctions.getGrayLevel();
+	}
+
 
 }
