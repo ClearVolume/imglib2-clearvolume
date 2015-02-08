@@ -192,7 +192,7 @@ public class ClearVolume {
 	 * ClearVolumeUnsignedShortType, ByteArray.
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
-	 * 
+	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
@@ -337,9 +337,12 @@ public class ClearVolume {
 	@SuppressWarnings( "unchecked" )
 	public static < ST extends RealType< ST > & NativeType< ST > > ArrayImg< ClearVolumeUnsignedShortType, ByteArray >
 	makeClearVolumeUnsignedShortTypeCopy( final RandomAccessibleInterval< ST > source, final double min, final double max ) {
+		final int srcNumDims = source.numDimensions();
+		final long[] srcDims = new long[ srcNumDims ];
+		source.dimensions( srcDims );
 		final ST sourceType = source.randomAccess().get();
 		final ArrayImg< ClearVolumeUnsignedShortType, ? > target =
-				new ArrayImgFactory< ClearVolumeUnsignedShortType >().create( new long[] {source.dimension( 0 ), source.dimension( 1 ), source.dimension( 2 )},
+				new ArrayImgFactory< ClearVolumeUnsignedShortType >().create( srcDims,
 						new ClearVolumeUnsignedShortType() );
 
 		final Cursor< ClearVolumeUnsignedShortType > targetCursor = target.localizingCursor();
