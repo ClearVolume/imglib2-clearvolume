@@ -14,16 +14,16 @@ The TableCellViewer [plugin in KNIME](http://tech.knime.org/book/clearvolume):
 ![KNIME plugin screenshot](images/knimeplugin.png)
 
 
-#### You would like to use ClearVolume plugin in Fiji/ImageJ2?
+#### You would like to use ClearVolume plugin in Fiji/ImageJ2 or KNIME?
 * Two hoops that will fall away soon but currently have to be taken:
   * Fiji must be started using Java 1.7 or 1.8 (or later?). See these [instructions](http://imagej.net/FAQ#How_do_I_launch_ImageJ_with_a_different_version_of_Java.3F).
   * Fiji must use the ImageJ2 data structures (imglib2). Enable in Fiji with 'Edit - Options - ImageJ2...'.
-  * **Install ClearVolume plugin directly in Fiji**: 
-    * Help - Update...
-    * click 'Manage Update Sites'
-    * check 'ClearVolume' in list of update sites and close window again.
-    * update installs, **done**! 
-  * Knime installation instructions can be found [here](http://tech.knime.org/book/clearvolume)
+* **Install ClearVolume plugin directly in Fiji**: 
+  * Help - Update...
+  * click 'Manage Update Sites'
+  * check 'ClearVolume' in list of update sites and close window again.
+  * update installs, **done**! 
+* Knime installation instructions can be found [here](http://tech.knime.org/book/clearvolume)
 
 
 #### You would like a superficial explainatoin of thow it all works?
