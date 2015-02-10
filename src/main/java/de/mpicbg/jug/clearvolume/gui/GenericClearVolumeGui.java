@@ -37,6 +37,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel implements ActionListener {
 
 	private Container ctnrClearVolume;
+	private NewtCanvasAWT newtClearVolumeCanvas;
 	private JPanel panelControls;
 	private JButton buttonReinitializeView;
 	private JButton buttonResetView;
@@ -110,7 +111,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			curVoxelSizeX = cvManager.getVoxelSizeX();
 			curVoxelSizeY = cvManager.getVoxelSizeY();
 			curVoxelSizeZ = cvManager.getVoxelSizeZ();
-			cvManager.close();
+			this.dispose();
 		}
 
 		// instantiate a NEW ClearVolumeManager
@@ -228,8 +229,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		ControlJPanel panelClearVolumeControl = null;
 
 		if ( cvManager != null ) {
-			final NewtCanvasAWT canvas = cvManager.getClearVolumeRendererInterface().getNewtCanvasAWT();
-			ctnrClearVolume.add( canvas, BorderLayout.CENTER );
+			newtClearVolumeCanvas = cvManager.getClearVolumeRendererInterface().getNewtCanvasAWT();
+			ctnrClearVolume.add( newtClearVolumeCanvas, BorderLayout.CENTER );
 
 			panelClearVolumeControl = new ControlJPanel();
 			panelClearVolumeControl.setClearVolumeRendererInterface( cvManager.getClearVolumeRendererInterface() );
@@ -399,6 +400,16 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			cvManager.toggleRecording();
 		}
 
+	}
+
+	/**
+	 * Cleans up all ClearVolume resources and empties this panel.
+	 */
+	public void dispose() {
+		System.out.println( "--== CV-GUI dispose ==--" );
+		ctnrClearVolume.remove( newtClearVolumeCanvas );
+		cvManager.close();
+		this.removeAll();
 	}
 
 }
