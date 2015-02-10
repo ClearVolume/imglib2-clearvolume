@@ -22,7 +22,6 @@ import javax.swing.JTextField;
 
 import net.imagej.ImgPlus;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
@@ -52,8 +51,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
 
-	private int textureWidth;
-	private int textureHeight;
+	private int maxTextureWidth;
+	private int maxTextureHeight;
 
 	private ImgPlus< T > imgPlus;
 	private List< RandomAccessibleInterval< T >> images;
@@ -71,70 +70,77 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		setTextureSize( textureWidth, textureHeight );
 
 		if ( imgPlus != null ) {
-			setImgPlus( imgPlus );
+			setImagesFromImgPlus( imgPlus );
+			launchClearVolumeManager();
 		}
 	}
 
-	private void setTextureSize( final int textureWidth, final int textureHeight ) {
-		this.textureWidth = textureWidth;
-		this.textureHeight = textureHeight;
-		if ( cvManager != null ) {
-			cvManager.setTextureSize( textureWidth, textureHeight );
-		}
-	}
-
-	public void setImgPlus( final ImgPlus< T > imgPlus ) {
+	public void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
 		if ( imgPlus == null ) return;
 
-		// find out if this is the initial call or if CV is reinitialized
-		boolean isFirstTime = false;
-		if ( images.size() == 0 ) {
-			isFirstTime = true;
-
-			// if given imgPlus has multiple channels: separate them!
-			if ( imgPlus.numDimensions() == 3 ) {
-				images.add( imgPlus );
-			} else if ( imgPlus.numDimensions() == 4 ) {
-				for ( int channel = 0; channel < imgPlus.dimension( 2 ); channel++ ) {
-					final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
-					images.add( rai );
-				}
+		// if given imgPlus has multiple channels: separate them!
+		if ( imgPlus.numDimensions() == 3 ) {
+			images.add( imgPlus );
+		} else if ( imgPlus.numDimensions() == 4 ) {
+			for ( int channel = 0; channel < imgPlus.dimension( 2 ); channel++ ) {
+				final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
+				images.add( rai );
 			}
 		}
+	}
 
-		// remember current (soon to be old) parameter values
-		double curMin = 0, curMax = 255;
-		double curVoxelSizeX = 1, curVoxelSizeY = 1, curVoxelSizeZ = 1;
+	public void launchClearVolumeManager() {
+		// if cvManager is set from previous session - free everything!
 		if ( cvManager != null ) {
-			curMin = cvManager.getMinIntensity();
-			curMax = cvManager.getMaxIntensity();
-			curVoxelSizeX = cvManager.getVoxelSizeX();
-			curVoxelSizeY = cvManager.getVoxelSizeY();
-			curVoxelSizeZ = cvManager.getVoxelSizeZ();
-			this.dispose();
+			cvManager.close();
+			this.closeOldSession();
 		}
 
 		// instantiate a NEW ClearVolumeManager
-		System.out.println( String.format( "Restarting with %d/%d.", textureWidth, textureHeight ) );
-		cvManager = new ClearVolumeManager< T >( images, textureWidth, textureHeight );
-		if ( isFirstTime ) {
-			final T min = imgPlus.firstElement().createVariable();
-			final T max = imgPlus.firstElement().createVariable();
-			ComputeMinMax.computeMinMax( imgPlus, min, max );
-			cvManager.setIntensityValues( min.getRealDouble(), max.getRealDouble() );
-
-			if ( imgPlus.numDimensions() == 3 ) {
-				cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 2 ) );
-			} else if ( imgPlus.numDimensions() == 4 ) {
-				cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 3 ) );
-			}
-		} else {
-			cvManager.setIntensityValues( curMin, curMax );
-			cvManager.setVoxelSize( curVoxelSizeX, curVoxelSizeY, curVoxelSizeZ );
+		cvManager = new ClearVolumeManager< T >( images, maxTextureWidth, maxTextureHeight );
+		if ( imgPlus.numDimensions() == 3 ) {
+			cvManager.setVoxelSize(
+					imgPlus.averageScale( 0 ),
+					imgPlus.averageScale( 1 ),
+					imgPlus.averageScale( 2 ) );
+		} else if ( imgPlus.numDimensions() == 4 ) {
+			cvManager.setVoxelSize(
+					imgPlus.averageScale( 0 ),
+					imgPlus.averageScale( 1 ),
+					imgPlus.averageScale( 3 ) );
 		}
 		cvManager.run();
+		buildGui();
+	}
 
-		rebuildGui();
+	public void relaunchClearVolumeManager( final ClearVolumeManager oldManager ) {
+		final double[] oldMinI = oldManager.getMinIntensities();
+		final double[] oldMaxI = oldManager.getMaxIntensities();
+		final List< RandomAccessibleInterval< T >> oldImages = oldManager.getChannelImages();
+		final double oldVoxelSizeX = oldManager.getVoxelSizeX();
+		final double oldVoxelSizeY = oldManager.getVoxelSizeY();
+		final double oldVoxelSizeZ = oldManager.getVoxelSizeZ();
+
+		oldManager.close();
+		this.closeOldSession();
+
+		// instantiate a NEW ClearVolumeManager using the old images and params
+		cvManager = new ClearVolumeManager< T >( oldImages, maxTextureWidth, maxTextureHeight );
+		cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
+		for ( int i = 0; i < oldImages.size(); i++ ) {
+			cvManager.setIntensityValues( i, oldMinI[ i ], oldMaxI[ i ] );
+		}
+
+		cvManager.run();
+		buildGui();
+	}
+
+	private void setTextureSize( final int textureWidth, final int textureHeight ) {
+		this.maxTextureWidth = textureWidth;
+		this.maxTextureHeight = textureHeight;
+		if ( cvManager != null ) {
+			cvManager.setTextureSize( textureWidth, textureHeight );
+		}
 	}
 
 	public ClearVolumeManager< T > getClearVolumeManager() {
@@ -145,8 +151,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		txtTextureWidth.setText( "" + cvManager.getTextureWidth() );
 		txtTextureHeight.setText( "" + cvManager.getTextureHeight() );
 
-		txtMinInt.setText( "" + cvManager.getMinIntensity() );
-		txtMaxInt.setText( "" + cvManager.getMaxIntensity() );
+		txtMinInt.setText( "" + cvManager.getMinIntensity( cvManager.getActiveChannelIndex() ) );
+		txtMaxInt.setText( "" + cvManager.getMaxIntensity( cvManager.getActiveChannelIndex() ) );
 
 		txtVoxelSizeX.setText( "" + cvManager.getVoxelSizeX() );
 		txtVoxelSizeY.setText( "" + cvManager.getVoxelSizeY() );
@@ -163,34 +169,34 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		try {
 			i = Integer.parseInt( txtTextureWidth.getText() );
 		} catch ( final NumberFormatException e ) {
-			i = this.textureWidth;
+			i = this.maxTextureWidth;
 		}
-		this.textureWidth = i;
+		this.maxTextureWidth = i;
 
 		try {
 			i = Integer.parseInt( txtTextureHeight.getText() );
 		} catch ( final NumberFormatException e ) {
-			i = this.textureHeight;
+			i = this.maxTextureHeight;
 		}
-		this.textureHeight = i;
+		this.maxTextureHeight = i;
 
-		cvManager.setTextureSize( this.textureWidth, this.textureHeight );
+		cvManager.setTextureSize( this.maxTextureWidth, this.maxTextureHeight );
 
 		try {
 			d = Double.parseDouble( txtMinInt.getText() );
 		} catch ( final NumberFormatException e ) {
-			d = cvManager.getMinIntensity();
+			d = cvManager.getMinIntensity(cvManager.getActiveChannelIndex());
 		}
 		final double minIntensity = d;
 
 		try {
 			d = Double.parseDouble( txtMaxInt.getText() );
 		} catch ( final NumberFormatException e ) {
-			d = cvManager.getMaxIntensity();
+			d = cvManager.getMaxIntensity(cvManager.getActiveChannelIndex());
 		}
 		final double maxIntensity = d;
 
-		cvManager.setIntensityValues( minIntensity, maxIntensity );
+		cvManager.setIntensityValues( cvManager.getActiveChannelIndex(), minIntensity, maxIntensity );
 
 		try {
 			d = Double.parseDouble( txtVoxelSizeX.getText() );
@@ -216,7 +222,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		cvManager.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
 	}
 
-	private void rebuildGui() {
+	private void buildGui() {
 //		this.setIgnoreRepaint( true );
 		this.setVisible( false );
 		this.removeAll();
@@ -386,7 +392,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		if ( e.getSource().equals( buttonReinitializeView ) || e.getActionCommand().equals( "Restart" ) ) {
 			activateGuiValues();
 			// this resets the existing imgPlus and thereby rebuilds/resets all
-			setImgPlus( imgPlus );
+			setImagesFromImgPlus( imgPlus );
 		} else if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
 			activateGuiValues();
 			cvManager.updateView();
@@ -405,10 +411,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	/**
 	 * Cleans up all ClearVolume resources and empties this panel.
 	 */
-	public void dispose() {
-		System.out.println( "--== CV-GUI dispose ==--" );
-		ctnrClearVolume.remove( newtClearVolumeCanvas );
-		cvManager.close();
+	public void closeOldSession() {
+		if ( newtClearVolumeCanvas != null ) ctnrClearVolume.remove( newtClearVolumeCanvas );
+		if ( cvManager != null ) cvManager.close();
 		this.removeAll();
 	}
 
