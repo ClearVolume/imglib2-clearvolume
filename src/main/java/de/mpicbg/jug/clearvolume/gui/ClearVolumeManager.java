@@ -1,5 +1,6 @@
 package de.mpicbg.jug.clearvolume.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.imglib2.RandomAccessibleInterval;
@@ -14,7 +15,9 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	private ClearVolumeRendererInterface cv;
 	private final List< RandomAccessibleInterval< T >> images;
 	private final int numChannels;
+
 	private int activeChannelIndex;
+	private List< ActiveLayerListener > activeLayerChangedListeners;
 
 	private int maxTextureWidth;
 	private int maxTextureHeight;
@@ -39,6 +42,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 		this.images = imagesToShow;
 		this.numChannels = images.size();
+
+		activeLayerChangedListeners = new ArrayList< ActiveLayerListener >();
 		this.setActiveChannelIndex( 0 );
 
 		this.maxTextureWidth = maxTextureWidth;
@@ -184,5 +189,57 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	 */
 	public void setActiveChannelIndex( final int activeChannelIndex ) {
 		this.activeChannelIndex = activeChannelIndex;
+		throwActiveLayerChanged();
+	}
+
+	/**
+	 * Notifies all registered ActiveLayerListener about the change.
+	 */
+	private void throwActiveLayerChanged() {
+		for ( final ActiveLayerListener l : activeLayerChangedListeners ) {
+			l.activeLayerChanged( this.activeChannelIndex );
+		}
+	}
+
+	/**
+	 * @param l
+	 *            listener to be added.
+	 */
+	public void addActiveLayerChangedListener( final ActiveLayerListener l ) {
+		activeLayerChangedListeners.add( l );
+	}
+
+	/**
+	 * @param channelId
+	 * @return
+	 */
+	public boolean isChannelVisible( final int channelId ) {
+		return cv.isLayerVisible( channelId );
+	}
+
+	/**
+	 * @param channelId
+	 * @param visible
+	 */
+	public void setChannelVisible( final int channelId, final boolean visible ) {
+		cv.setLayerVisible( channelId, visible );
+		cv.requestDisplay();
+	}
+
+	/**
+	 * @param channelId
+	 * @return
+	 */
+	public double getBrightness( final int channelId ) {
+		return cv.getBrightness( channelId );
+	}
+
+	/**
+	 * @param channelId
+	 * @param brightness
+	 */
+	public void setBrightness( final int channelId, final double brightness ) {
+		cv.setBrightness( channelId, brightness );
+		cv.requestDisplay();
 	}
 }

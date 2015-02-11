@@ -19,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import net.imagej.ImgPlus;
 import net.imglib2.RandomAccessibleInterval;
@@ -33,7 +34,10 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 /**
  * @author jug
  */
-public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel implements ActionListener {
+public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel
+		implements
+		ActionListener,
+		ActiveLayerListener {
 
 	private Container ctnrClearVolume;
 	private NewtCanvasAWT newtClearVolumeCanvas;
@@ -50,6 +54,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private JTextField txtVoxelSizeZ;
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
+	private List< ChannelWidget > channelWidgets;
+	ControlJPanel panelClearVolumeControl;
 
 	private int maxTextureWidth;
 	private int maxTextureHeight;
@@ -75,7 +81,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		}
 	}
 
-	public void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
+	private void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
 		if ( imgPlus == null ) return;
 
 		// if given imgPlus has multiple channels: separate them!
@@ -98,6 +104,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		// instantiate a NEW ClearVolumeManager
 		cvManager = new ClearVolumeManager< T >( images, maxTextureWidth, maxTextureHeight );
+		cvManager.addActiveLayerChangedListener( this );
+
 		if ( imgPlus.numDimensions() == 3 ) {
 			cvManager.setVoxelSize(
 					imgPlus.averageScale( 0 ),
@@ -110,10 +118,17 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 					imgPlus.averageScale( 3 ) );
 		}
 		cvManager.run();
+
+		// Create necessary channel widgets!
+		this.channelWidgets = new ArrayList< ChannelWidget >();
+		for ( int i = 0; i < images.size(); i++ ) {
+			channelWidgets.add( new ChannelWidget( cvManager, i ) );
+		}
+
 		buildGui();
 	}
 
-	public void relaunchClearVolumeManager( final ClearVolumeManager oldManager ) {
+	public void relaunchClearVolumeManager( final ClearVolumeManager< T > oldManager ) {
 		final double[] oldMinI = oldManager.getMinIntensities();
 		final double[] oldMaxI = oldManager.getMaxIntensities();
 		final List< RandomAccessibleInterval< T >> oldImages = oldManager.getChannelImages();
@@ -126,6 +141,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		// instantiate a NEW ClearVolumeManager using the old images and params
 		cvManager = new ClearVolumeManager< T >( oldImages, maxTextureWidth, maxTextureHeight );
+		cvManager.addActiveLayerChangedListener( this );
+
 		cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
 		for ( int i = 0; i < oldImages.size(); i++ ) {
 			cvManager.setIntensityValues( i, oldMinI[ i ], oldMaxI[ i ] );
@@ -232,13 +249,12 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		ctnrClearVolume = new Container();
 		ctnrClearVolume.setLayout( new BorderLayout() );
 
-		ControlJPanel panelClearVolumeControl = null;
-
 		if ( cvManager != null ) {
 			newtClearVolumeCanvas = cvManager.getClearVolumeRendererInterface().getNewtCanvasAWT();
 			ctnrClearVolume.add( newtClearVolumeCanvas, BorderLayout.CENTER );
 
-			panelClearVolumeControl = new ControlJPanel();
+			panelClearVolumeControl =
+					new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
 			panelClearVolumeControl.setClearVolumeRendererInterface( cvManager.getClearVolumeRendererInterface() );
 		} else {
 			System.err.println( "ClearVolumeTableCellView: Did you intend this? You called buildGui while cvManager==null!" );
@@ -257,20 +273,20 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 
 		final JLabel lblMinInt = new JLabel( "Min. intensity" );
-		txtMinInt = new JTextField();
+		txtMinInt = new JTextField( 5 );
 		txtMinInt.setActionCommand( "Restart" );
 		txtMinInt.addActionListener( this );
 		final JLabel lblMaxInt = new JLabel( "Max. intensity" );
-		txtMaxInt = new JTextField();
+		txtMaxInt = new JTextField( 5 );
 		txtMaxInt.setActionCommand( "Restart" );
 		txtMaxInt.addActionListener( this );
 
 		final JLabel lblTextureWidth = new JLabel( "Texture width" );
-		txtTextureWidth = new JTextField();
+		txtTextureWidth = new JTextField( 5 );
 		txtTextureWidth.setActionCommand( "Restart" );
 		txtTextureWidth.addActionListener( this );
 		final JLabel lblTextureHeight = new JLabel( "Texture height" );
-		txtTextureHeight = new JTextField();
+		txtTextureHeight = new JTextField( 5 );
 		txtTextureHeight.setActionCommand( "Restart" );
 		txtTextureHeight.addActionListener( this );
 
@@ -303,15 +319,15 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 
 		final JLabel lblVoxelSizeX = new JLabel( "VoxelDimension.X" );
-		txtVoxelSizeX = new JTextField();
+		txtVoxelSizeX = new JTextField( 8 );
 		txtVoxelSizeX.setActionCommand( "UpdateView" );
 		txtVoxelSizeX.addActionListener( this );
 		final JLabel lblVoxelSizeY = new JLabel( "VoxelDimension.Y" );
-		txtVoxelSizeY = new JTextField();
+		txtVoxelSizeY = new JTextField( 8 );
 		txtVoxelSizeY.setActionCommand( "UpdateView" );
 		txtVoxelSizeY.addActionListener( this );
 		final JLabel lblVoxelSizeZ = new JLabel( "VoxelDimension.Z" );
-		txtVoxelSizeZ = new JTextField();
+		txtVoxelSizeZ = new JTextField( 8 );
 		txtVoxelSizeZ.setActionCommand( "UpdateView" );
 		txtVoxelSizeZ.addActionListener( this );
 
@@ -359,6 +375,20 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonToggleRecording, BorderLayout.SOUTH );
 		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
+		panelControls.add( shrinkingHelper );
+
+		// Channel Widgets
+		// ===============
+		panelControlsHelper = new JPanel( new GridLayout( channelWidgets.size(), 1 ) );
+		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+
+		for ( int i = 0; i < channelWidgets.size(); i++ ) {
+			panelControlsHelper.add( channelWidgets.get( i ) );
+		}
+
+		shrinkingHelper = new JPanel( new BorderLayout() );
+		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
 
 		// Display hijacked control container if possible
@@ -414,6 +444,27 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		if ( newtClearVolumeCanvas != null ) ctnrClearVolume.remove( newtClearVolumeCanvas );
 		if ( cvManager != null ) cvManager.close();
 		this.removeAll();
+	}
+
+	/**
+	 * @see de.mpicbg.jug.clearvolume.gui.ActiveLayerListener#activeLayerChanged(int)
+	 */
+	@Override
+	public void activeLayerChanged( final int layerId ) {
+		System.out.println( "Active Layer Changed to " + cvManager.getActiveChannelIndex() );
+
+		this.remove( panelClearVolumeControl );
+		panelClearVolumeControl =
+				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
+		this.add( panelClearVolumeControl, BorderLayout.SOUTH );
+		final GenericClearVolumeGui< T > self = this;
+		SwingUtilities.invokeLater( new Runnable() {
+
+			@Override
+			public void run() {
+				self.revalidate();
+			}
+		} );
 	}
 
 }

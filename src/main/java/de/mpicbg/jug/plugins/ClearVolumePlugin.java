@@ -71,6 +71,7 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 				}
 			}
 			frame.add( panelGui );
+			frame.revalidate();
 			SwingUtilities.invokeLater( new Runnable() {
 
 				@Override
