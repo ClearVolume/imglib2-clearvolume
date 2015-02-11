@@ -8,21 +8,27 @@ import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import clearvolume.transferf.TransferFunction;
+import clearvolume.transferf.TransferFunctions;
 
 /**
  * @author jug
  */
-public class ChannelWidget extends JPanel implements ActionListener, ChangeListener {
+public class ChannelWidget extends JPanel implements ActionListener, ChangeListener, FocusListener {
 
 	// The GUI widget's model (or something close to it)
 	private final int channelId;
@@ -54,9 +60,9 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		sBrightness =
 				new JSlider( JSlider.HORIZONTAL, 0, 100, ( int ) ( cvm.getBrightness( channelId ) * 100 ) );
 		sBrightness.addChangeListener( this );
-		bTransferFunction = new JButton();
+		sBrightness.addFocusListener( this );
+		bTransferFunction = new JButton( model.getTransferFunctionColorIcon() );
 		bTransferFunction.addActionListener( this );
-		bTransferFunction.setBackground( Color.black );
 
 		this.setLayout( new BorderLayout() );
 		this.add( new JLabel( String.format( "Ch.%d", channelId ) ), BorderLayout.NORTH );
@@ -102,8 +108,35 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 				}
 			}
 			cvm.setChannelVisible( channelId, visible );
-		} else if ( e.getSource().equals( bTransferFunction ) ) {
 
+		} else if ( e.getSource().equals( bTransferFunction ) ) {
+			final TransferFunction tfold = cvm.getTransferFunction(channelId);
+			final float[] ftoldarray = tfold.getArray();
+			final Color oldColor = new Color(
+					ftoldarray[ ftoldarray.length - 4 ],
+					ftoldarray[ ftoldarray.length - 3 ],
+					ftoldarray[ ftoldarray.length - 2 ] );
+
+			final Color newColor =
+					JColorChooser.showDialog(
+							SwingUtilities.getRoot( this ),
+							"Choose channel color...",
+							oldColor );
+			TransferFunction tf;
+			if ( newColor != null ) {
+				tf = TransferFunctions.getGradientForColor(
+						newColor.getRed() / 255f,
+						newColor.getGreen() / 255f,
+						newColor.getBlue() / 255f,
+						newColor.getAlpha() / 255f );
+			} else {
+				tf = TransferFunctions.getRainbowSolid();
+			}
+			cvm.setTransferFunction( channelId, tf );
+			bTransferFunction.setIcon( new TransferFunctionGradientIcon( 20, 20, tf ) );
+
+			cvm.setActiveChannelIndex( channelId );
+			cvm.updateView();
 		}
 	}
 
@@ -113,13 +146,23 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	@Override
 	public void stateChanged( final ChangeEvent e ) {
 		final double brightness = sBrightness.getValue() / 100.0;
-		System.out.println( String.format(
-				"Brightness of channel %02d: %.2f",
-				channelId,
-				brightness ) );
 		cvm.setBrightness( channelId, brightness );
 		if ( cvm.isChannelVisible( channelId ) ) {
 			cvm.setActiveChannelIndex( channelId );
 		}
 	}
+
+	/**
+	 * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
+	 */
+	@Override
+	public void focusGained( final FocusEvent e ) {
+		cvm.setActiveChannelIndex( channelId );
+	}
+
+	/**
+	 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
+	 */
+	@Override
+	public void focusLost( final FocusEvent e ) {}
 }

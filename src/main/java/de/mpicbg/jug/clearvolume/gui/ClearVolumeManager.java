@@ -3,11 +3,15 @@ package de.mpicbg.jug.clearvolume.gui;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Icon;
+
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
+import clearvolume.transferf.TransferFunction;
+import clearvolume.transferf.TransferFunctions;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> implements Runnable {
@@ -241,5 +245,29 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	public void setBrightness( final int channelId, final double brightness ) {
 		cv.setBrightness( channelId, brightness );
 		cv.requestDisplay();
+	}
+
+	/**
+	 * @return
+	 */
+	public Icon getTransferFunctionColorIcon() {
+		cv.setTransferFunction( TransferFunctions.getGrayLevel() );
+		final TransferFunction tf = cv.getTransferFunction( getActiveChannelIndex() );
+		return new TransferFunctionGradientIcon( 20, 20, tf );
+	}
+
+	/**
+	 * @param channelId
+	 * @param gradientForColor
+	 */
+	public void setTransferFunction( final int channelId, final TransferFunction transferFunction ) {
+		cv.setTransferFunction( channelId, transferFunction );
+	}
+
+	/**
+	 * @param channelId
+	 */
+	public TransferFunction getTransferFunction( final int channelId ) {
+		return cv.getTransferFunction( channelId );
 	}
 }

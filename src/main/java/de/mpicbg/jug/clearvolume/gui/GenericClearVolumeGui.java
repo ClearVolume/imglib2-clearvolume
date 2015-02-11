@@ -451,8 +451,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 */
 	@Override
 	public void activeLayerChanged( final int layerId ) {
-		System.out.println( "Active Layer Changed to " + cvManager.getActiveChannelIndex() );
-
 		this.remove( panelClearVolumeControl );
 		panelClearVolumeControl =
 				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
