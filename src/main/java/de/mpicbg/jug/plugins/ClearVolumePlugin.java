@@ -63,6 +63,13 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 			frame.setBounds( ( screenDims.width - windowWidth ) / 2, ( screenDims.height - windowHeight ) / 2, windowWidth, windowHeight );
 
 			panelGui = new GenericClearVolumeGui< T >( imgPlus, textureWidth, textureHeight );
+			synchronized ( this ) {
+				try {
+					wait( 1000 );
+				} catch ( final InterruptedException e ) {
+					e.printStackTrace();
+				}
+			}
 			frame.add( panelGui );
 			SwingUtilities.invokeLater( new Runnable() {
 

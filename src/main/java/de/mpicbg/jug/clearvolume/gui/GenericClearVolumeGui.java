@@ -391,8 +391,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		if ( e.getSource().equals( buttonReinitializeView ) || e.getActionCommand().equals( "Restart" ) ) {
 			activateGuiValues();
-			// this resets the existing imgPlus and thereby rebuilds/resets all
-			setImagesFromImgPlus( imgPlus );
+			relaunchClearVolumeManager( cvManager );
 		} else if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
 			activateGuiValues();
 			cvManager.updateView();
