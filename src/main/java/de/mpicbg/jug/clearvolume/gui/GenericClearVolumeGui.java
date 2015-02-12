@@ -8,6 +8,7 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,8 +104,20 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		}
 
 		// instantiate a NEW ClearVolumeManager
-		cvManager = new ClearVolumeManager< T >( images, maxTextureWidth, maxTextureHeight );
-		cvManager.addActiveLayerChangedListener( this );
+		try {
+			final GenericClearVolumeGui< T > self = this;
+			SwingUtilities.invokeAndWait( new Runnable() {
+
+				@Override
+				public void run() {
+					cvManager =
+							new ClearVolumeManager< T >( images, maxTextureWidth, maxTextureHeight );
+					cvManager.addActiveLayerChangedListener( self );
+				}
+			} );
+		} catch ( InvocationTargetException | InterruptedException e ) {
+			System.err.println( "Launching CV session was interrupted in GenericClearVolumeGui!" );
+		}
 
 		if ( imgPlus.numDimensions() == 3 ) {
 			cvManager.setVoxelSize(
@@ -140,8 +153,20 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		this.closeOldSession();
 
 		// instantiate a NEW ClearVolumeManager using the old images and params
-		cvManager = new ClearVolumeManager< T >( oldImages, maxTextureWidth, maxTextureHeight );
-		cvManager.addActiveLayerChangedListener( this );
+		try {
+			final GenericClearVolumeGui< T > self = this;
+			SwingUtilities.invokeAndWait( new Runnable() {
+
+				@Override
+				public void run() {
+					cvManager =
+							new ClearVolumeManager< T >( oldImages, maxTextureWidth, maxTextureHeight );
+					cvManager.addActiveLayerChangedListener( self );
+				}
+			} );
+		} catch ( InvocationTargetException | InterruptedException e ) {
+			System.err.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
+		}
 
 		cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
 		for ( int i = 0; i < oldImages.size(); i++ ) {
@@ -441,9 +466,21 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * Cleans up all ClearVolume resources and empties this panel.
 	 */
 	public void closeOldSession() {
-		if ( newtClearVolumeCanvas != null ) ctnrClearVolume.remove( newtClearVolumeCanvas );
-		if ( cvManager != null ) cvManager.close();
-		this.removeAll();
+		final GenericClearVolumeGui< T > self = this;
+		try {
+			SwingUtilities.invokeAndWait( new Runnable() {
+
+				@Override
+				public void run() {
+					if ( newtClearVolumeCanvas != null )
+						ctnrClearVolume.remove( newtClearVolumeCanvas );
+					if ( cvManager != null ) cvManager.close();
+					self.removeAll();
+				}
+			} );
+		} catch ( InvocationTargetException | InterruptedException e ) {
+			System.err.println( "Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
+		}
 	}
 
 	/**

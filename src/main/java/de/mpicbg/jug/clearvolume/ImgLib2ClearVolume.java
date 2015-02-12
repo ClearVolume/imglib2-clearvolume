@@ -163,7 +163,9 @@ public class ImgLib2ClearVolume {
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
-			lClearVolumeRenderer.setTransferFunction( getTransferFunctionForChannel( channel ) );
+			lClearVolumeRenderer.setTransferFunction(
+					channel,
+					getTransferFunctionForChannel( channel ) );
 		}
 		return lClearVolumeRenderer;
 	}

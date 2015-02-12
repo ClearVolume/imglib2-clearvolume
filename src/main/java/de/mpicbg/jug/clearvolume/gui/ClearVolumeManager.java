@@ -1,9 +1,11 @@
 package de.mpicbg.jug.clearvolume.gui;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Icon;
+import javax.swing.SwingUtilities;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.ComputeMinMax;
@@ -92,7 +94,17 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 	public void close() {
 		if ( cv != null ) {
-			cv.close();
+			try {
+				SwingUtilities.invokeAndWait( new Runnable() {
+
+					@Override
+					public void run() {
+						cv.close();
+					}
+				} );
+			} catch ( InvocationTargetException | InterruptedException e ) {
+				System.err.println( "Closing of CV session was interrupted in ClearVolumeManager!" );
+			}
 		}
 	}
 
