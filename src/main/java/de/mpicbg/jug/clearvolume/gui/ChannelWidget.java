@@ -61,7 +61,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 				new JSlider( JSlider.HORIZONTAL, 0, 100, ( int ) ( cvm.getBrightness( channelId ) * 100 ) );
 		sBrightness.addChangeListener( this );
 		sBrightness.addFocusListener( this );
-		bTransferFunction = new JButton( model.getTransferFunctionColorIcon() );
+		bTransferFunction = new JButton( model.getTransferFunctionColorIcon( channelId ) );
 		bTransferFunction.addActionListener( this );
 
 		this.setLayout( new BorderLayout() );

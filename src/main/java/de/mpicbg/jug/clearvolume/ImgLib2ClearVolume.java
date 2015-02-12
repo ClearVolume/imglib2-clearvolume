@@ -77,8 +77,9 @@ public class ImgLib2ClearVolume {
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
-//			lClearVolumeRenderer.setTransferFunction(TransferFunctions.getGrayLevel());
-			lClearVolumeRenderer.setTransferFunction( TransferFunctions.getGradientForColor( channel ) );
+			lClearVolumeRenderer.setTransferFunction(
+					channel,
+					TransferFunctions.getGradientForColor( channel ) );
 		}
 		return lClearVolumeRenderer;
 	}
@@ -243,7 +244,9 @@ public class ImgLib2ClearVolume {
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
-			lClearVolumeRenderer.setTransferFunction( getTransferFunctionForChannel( channel ) );
+			lClearVolumeRenderer.setTransferFunction(
+					channel,
+					getTransferFunctionForChannel( channel ) );
 		}
 		return lClearVolumeRenderer;
 	}

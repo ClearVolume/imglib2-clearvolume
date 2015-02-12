@@ -13,7 +13,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.transferf.TransferFunction;
-import clearvolume.transferf.TransferFunctions;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> implements Runnable {
@@ -262,9 +261,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	/**
 	 * @return
 	 */
-	public Icon getTransferFunctionColorIcon() {
-		cv.setTransferFunction( TransferFunctions.getGrayLevel() );
-		final TransferFunction tf = cv.getTransferFunction( getActiveChannelIndex() );
+	public Icon getTransferFunctionColorIcon( final int channelId ) {
+		final TransferFunction tf = cv.getTransferFunction( channelId );
 		return new TransferFunctionGradientIcon( 20, 20, tf );
 	}
 
