@@ -214,6 +214,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	 *            the activeChannelIndex to set
 	 */
 	public void setActiveChannelIndex( final int activeChannelIndex ) {
+		if ( cv != null )
+			cv.setCurrentRenderLayer( activeChannelIndex );
 		this.activeChannelIndex = activeChannelIndex;
 		throwActiveLayerChanged();
 	}

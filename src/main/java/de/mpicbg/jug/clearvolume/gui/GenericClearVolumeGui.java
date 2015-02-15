@@ -130,6 +130,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			}
 		} catch ( InvocationTargetException | InterruptedException e ) {
 			System.err.println( "Launching CV session was interrupted in GenericClearVolumeGui!" );
+			e.printStackTrace();
 		}
 
 		if ( imgPlus.numDimensions() == 3 ) {
@@ -432,6 +433,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelClearVolumeControl =
 				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
 		this.add( panelClearVolumeControl, BorderLayout.SOUTH );
+
 		final GenericClearVolumeGui< T > self = this;
 		SwingUtilities.invokeLater( new Runnable() {
 
