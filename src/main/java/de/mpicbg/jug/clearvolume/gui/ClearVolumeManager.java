@@ -34,16 +34,19 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	private double[] minIntensities;
 	private double[] maxIntensities;
 
+	private boolean useCuda = true;
+
 	/**
 	 * @param ctnrClearVolume
 	 */
 	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow ) {
-		this( imagesToShow, 512, 512 );
+		this( imagesToShow, 758, 768, true );
 	}
 
 	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow,
 			final int maxTextureWidth,
-			final int maxTextureHeight ) {
+			final int maxTextureHeight,
+			final boolean useCuda ) {
 
 		this.images = imagesToShow;
 		this.numChannels = images.size();
@@ -53,6 +56,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 		this.maxTextureWidth = maxTextureWidth;
 		this.maxTextureHeight = maxTextureHeight;
+
+		this.useCuda = useCuda;
 
 		this.voxelSizeX = 1.;
 		this.voxelSizeY = 1.;
@@ -94,13 +99,19 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	public void close() {
 		if ( cv != null ) {
 			try {
-				SwingUtilities.invokeAndWait( new Runnable() {
+				final Runnable todo = new Runnable() {
 
 					@Override
 					public void run() {
 						cv.close();
 					}
-				} );
+				};
+
+				if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+					todo.run();
+				} else {
+					SwingUtilities.invokeAndWait( todo );
+				}
 			} catch ( InvocationTargetException | InterruptedException e ) {
 				System.err.println( "Closing of CV session was interrupted in ClearVolumeManager!" );
 			}
@@ -279,5 +290,12 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	 */
 	public TransferFunction getTransferFunction( final int channelId ) {
 		return cv.getTransferFunction( channelId );
+	}
+
+	/**
+	 * @param b
+	 */
+	public void setCuda( final boolean b ) {
+		this.useCuda = b;
 	}
 }

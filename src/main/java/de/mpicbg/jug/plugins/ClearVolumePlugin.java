@@ -34,16 +34,14 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	private Dataset dataset;
 	private ImgPlus< T > imgPlus;
 
-	@Parameter( label = "Window width", min = "800", required = true, stepSize = "1", columns = 5, description = "Width of the frame to be opened." )
-	private int windowWidth;
-	@Parameter( label = "Window height", min = "600", stepSize = "1", columns = 5, description = "Height of the frame to be opened." )
-	private int windowHeight;
+	private final int windowWidth = 1200;
+	private final int windowHeight = 900;
 
-	@Parameter( label = "Texture width", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Width of the texture to be rendered." )
-	private int textureWidth;
-	@Parameter( label = "Texture height", min = "128", max = "1024", stepSize = "1", columns = 5, description = "Height of the texture to be rendered." )
-	private int textureHeight;
+	@Parameter( label = "Max texture size", min = "16", max = "1600", stepSize = "100", columns = 5, description = "Max texture resolution (per axis)." )
+	private int textureResolution = 768;
 
+	@Parameter( label = "try using CUDA if supported" )
+	private boolean useCuda = false;
 
 	private JFrame frame = null;
 	private GenericClearVolumeGui< T > panelGui = null;
@@ -57,21 +55,26 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 		imgPlus = ( ImgPlus< T > ) dataset.getImgPlus();
 
 		final boolean isShowable = checkIfShowable( imgPlus, true );
+		useCuda = !( !useCuda ); // to avoid eclipse making this field 'final' -- stupid!
 
 		if ( isShowable ) {
+			final Dimension screenDims = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+
+			textureResolution = Math.min( textureResolution, screenDims.width );
+
 			frame = new JFrame( "ClearVolume" );
 			frame.setLayout( new BorderLayout() );
-			final Dimension screenDims = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
 			frame.setBounds( ( screenDims.width - windowWidth ) / 2, ( screenDims.height - windowHeight ) / 2, windowWidth, windowHeight );
 
-			panelGui = new GenericClearVolumeGui< T >( imgPlus, textureWidth, textureHeight );
+			panelGui =
+					new GenericClearVolumeGui< T >( imgPlus, textureResolution, useCuda );
 			frame.add( panelGui );
-			frame.revalidate();
 			SwingUtilities.invokeLater( new Runnable() {
 
 				@Override
 				public void run() {
 					frame.setVisible( true );
+					frame.revalidate();
 				}
 
 			} );

@@ -43,33 +43,34 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private Container ctnrClearVolume;
 	private NewtCanvasAWT newtClearVolumeCanvas;
 	private JPanel panelControls;
-	private JButton buttonReinitializeView;
+
 	private JButton buttonResetView;
 	private JButton buttonUpdateView;
-	private JTextField txtTextureWidth;
-	private JTextField txtTextureHeight;
-	private JTextField txtMinInt;
-	private JTextField txtMaxInt;
+
 	private JTextField txtVoxelSizeX;
 	private JTextField txtVoxelSizeY;
 	private JTextField txtVoxelSizeZ;
+
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
 	private List< ChannelWidget > channelWidgets;
 	ControlJPanel panelClearVolumeControl;
 
-	private int maxTextureWidth;
-	private int maxTextureHeight;
+	private int maxTextureResolution;
+	private boolean useCuda;
 
 	private ImgPlus< T > imgPlus;
 	private List< RandomAccessibleInterval< T >> images;
 	private ClearVolumeManager< T > cvManager;
 
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus ) {
-		this( imgPlus, 512, 512 );
+		this( imgPlus, 768, true );
 	}
 
-	public GenericClearVolumeGui( final ImgPlus< T > imgPlus, final int textureWidth, final int textureHeight ) {
+	public GenericClearVolumeGui(
+			final ImgPlus< T > imgPlus,
+			final int textureResolution,
+			final boolean useCuda ) {
 		super( true );
 
 //		final List< Image > icons = SwingUtilities.getWindowAncestor( this ).getIconImages();
@@ -80,7 +81,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		this.imgPlus = imgPlus;
 		images = new ArrayList< RandomAccessibleInterval< T >>();
-		setTextureSize( textureWidth, textureHeight );
+		setTextureSizeAndCudaFlag( textureResolution, useCuda );
 
 		if ( imgPlus != null ) {
 			setImagesFromImgPlus( imgPlus );
@@ -112,15 +113,21 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// instantiate a NEW ClearVolumeManager
 		try {
 			final GenericClearVolumeGui< T > self = this;
-			SwingUtilities.invokeAndWait( new Runnable() {
+			final Runnable todo = new Runnable() {
 
 				@Override
 				public void run() {
 					cvManager =
-							new ClearVolumeManager< T >( images, maxTextureWidth, maxTextureHeight );
+							new ClearVolumeManager< T >( images, maxTextureResolution, maxTextureResolution, useCuda );
 					cvManager.addActiveLayerChangedListener( self );
 				}
-			} );
+			};
+
+			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+				todo.run();
+			} else {
+				SwingUtilities.invokeAndWait( todo );
+			}
 		} catch ( InvocationTargetException | InterruptedException e ) {
 			System.err.println( "Launching CV session was interrupted in GenericClearVolumeGui!" );
 		}
@@ -161,15 +168,21 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// instantiate a NEW ClearVolumeManager using the old images and params
 		try {
 			final GenericClearVolumeGui< T > self = this;
-			SwingUtilities.invokeAndWait( new Runnable() {
+			final Runnable todo = new Runnable() {
 
 				@Override
 				public void run() {
 					cvManager =
-							new ClearVolumeManager< T >( oldImages, maxTextureWidth, maxTextureHeight );
+							new ClearVolumeManager< T >( oldImages, maxTextureResolution, maxTextureResolution, useCuda );
 					cvManager.addActiveLayerChangedListener( self );
 				}
-			} );
+			};
+
+			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+				todo.run();
+			} else {
+				SwingUtilities.invokeAndWait( todo );
+			}
 		} catch ( InvocationTargetException | InterruptedException e ) {
 			System.err.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
 		}
@@ -183,11 +196,13 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		buildGui();
 	}
 
-	private void setTextureSize( final int textureWidth, final int textureHeight ) {
-		this.maxTextureWidth = textureWidth;
-		this.maxTextureHeight = textureHeight;
+	private void setTextureSizeAndCudaFlag( final int textureRes, final boolean useCuda ) {
+		this.maxTextureResolution = textureRes;
+		this.useCuda = useCuda;
+
 		if ( cvManager != null ) {
-			cvManager.setTextureSize( textureWidth, textureHeight );
+			cvManager.setTextureSize( textureRes, textureRes );
+			cvManager.setCuda( true );
 		}
 	}
 
@@ -196,12 +211,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	}
 
 	public void pushParamsToGui() {
-		txtTextureWidth.setText( "" + cvManager.getTextureWidth() );
-		txtTextureHeight.setText( "" + cvManager.getTextureHeight() );
-
-		txtMinInt.setText( "" + cvManager.getMinIntensity( cvManager.getActiveChannelIndex() ) );
-		txtMaxInt.setText( "" + cvManager.getMaxIntensity( cvManager.getActiveChannelIndex() ) );
-
 		txtVoxelSizeX.setText( "" + cvManager.getVoxelSizeX() );
 		txtVoxelSizeY.setText( "" + cvManager.getVoxelSizeY() );
 		txtVoxelSizeZ.setText( "" + cvManager.getVoxelSizeZ() );
@@ -211,40 +220,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * Read all validly entered text field values and activate them.
 	 */
 	private void activateGuiValues() {
-		int i;
+		final int i;
 		double d;
-
-		try {
-			i = Integer.parseInt( txtTextureWidth.getText() );
-		} catch ( final NumberFormatException e ) {
-			i = this.maxTextureWidth;
-		}
-		this.maxTextureWidth = i;
-
-		try {
-			i = Integer.parseInt( txtTextureHeight.getText() );
-		} catch ( final NumberFormatException e ) {
-			i = this.maxTextureHeight;
-		}
-		this.maxTextureHeight = i;
-
-		cvManager.setTextureSize( this.maxTextureWidth, this.maxTextureHeight );
-
-		try {
-			d = Double.parseDouble( txtMinInt.getText() );
-		} catch ( final NumberFormatException e ) {
-			d = cvManager.getMinIntensity(cvManager.getActiveChannelIndex());
-		}
-		final double minIntensity = d;
-
-		try {
-			d = Double.parseDouble( txtMaxInt.getText() );
-		} catch ( final NumberFormatException e ) {
-			d = cvManager.getMaxIntensity(cvManager.getActiveChannelIndex());
-		}
-		final double maxIntensity = d;
-
-		cvManager.setIntensityValues( cvManager.getActiveChannelIndex(), minIntensity, maxIntensity );
 
 		try {
 			d = Double.parseDouble( txtVoxelSizeX.getText() );
@@ -298,55 +275,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControls.add( Box.createVerticalGlue() );
 
 
-		// Parameters requiring reinitialization
-		// -------------------------------------
-		JPanel panelControlsHelper = new JPanel( new GridLayout( 4, 2 ) );
-		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-
-		final JLabel lblMinInt = new JLabel( "Min. intensity" );
-		txtMinInt = new JTextField( 5 );
-		txtMinInt.setActionCommand( "Restart" );
-		txtMinInt.addActionListener( this );
-		final JLabel lblMaxInt = new JLabel( "Max. intensity" );
-		txtMaxInt = new JTextField( 5 );
-		txtMaxInt.setActionCommand( "Restart" );
-		txtMaxInt.addActionListener( this );
-
-		final JLabel lblTextureWidth = new JLabel( "Texture width" );
-		txtTextureWidth = new JTextField( 5 );
-		txtTextureWidth.setActionCommand( "Restart" );
-		txtTextureWidth.addActionListener( this );
-		final JLabel lblTextureHeight = new JLabel( "Texture height" );
-		txtTextureHeight = new JTextField( 5 );
-		txtTextureHeight.setActionCommand( "Restart" );
-		txtTextureHeight.addActionListener( this );
-
-		panelControlsHelper.add( lblMinInt );
-		panelControlsHelper.add( txtMinInt );
-		panelControlsHelper.add( lblMaxInt );
-		panelControlsHelper.add( txtMaxInt );
-
-		panelControlsHelper.add( lblTextureWidth );
-		panelControlsHelper.add( txtTextureWidth );
-		panelControlsHelper.add( lblTextureHeight );
-		panelControlsHelper.add( txtTextureHeight );
-
-		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
-
-		buttonReinitializeView = new JButton( "Set" );
-		buttonReinitializeView.addActionListener( this );
-
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( buttonReinitializeView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
-		panelControls.add( shrinkingHelper );
-
 		// Parameters that require a view update
 		// -------------------------------------
-		panelControlsHelper = new JPanel( new GridLayout( 3, 2 ) );
+		JPanel panelControlsHelper = new JPanel( new GridLayout( 3, 2 ) );
 		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 
 		final JLabel lblVoxelSizeX = new JLabel( "VoxelDimension.X" );
@@ -369,7 +300,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControlsHelper.add( lblVoxelSizeZ );
 		panelControlsHelper.add( txtVoxelSizeZ );
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
+		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
 		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
@@ -450,10 +381,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	@Override
 	public void actionPerformed( final ActionEvent e ) {
 
-		if ( e.getSource().equals( buttonReinitializeView ) || e.getActionCommand().equals( "Restart" ) ) {
-			activateGuiValues();
-			relaunchClearVolumeManager( cvManager );
-		} else if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
+		if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
 			activateGuiValues();
 			cvManager.updateView();
 		} else if ( e.getSource().equals( buttonResetView ) ) {
@@ -472,9 +400,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * Cleans up all ClearVolume resources and empties this panel.
 	 */
 	public void closeOldSession() {
-		final GenericClearVolumeGui< T > self = this;
 		try {
-			SwingUtilities.invokeAndWait( new Runnable() {
+			final GenericClearVolumeGui< T > self = this;
+			final Runnable todo = new Runnable() {
 
 				@Override
 				public void run() {
@@ -483,7 +411,13 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 					if ( cvManager != null ) cvManager.close();
 					self.removeAll();
 				}
-			} );
+			};
+
+			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+				todo.run();
+			} else {
+				SwingUtilities.invokeAndWait( todo );
+			}
 		} catch ( InvocationTargetException | InterruptedException e ) {
 			System.err.println( "Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
 		}
