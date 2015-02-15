@@ -13,15 +13,19 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
+import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
+import net.imglib2.img.basictypeaccess.array.FloatArray;
 import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunction;
@@ -458,19 +462,59 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	private static TransferFunction getTransferFunctionForChannel( final int channel ) {
-		switch ( channel % 5 ) {
+		switch ( channel % 4 ) {
 		case 0:
 			return TransferFunctions.getGrayLevel();
 		case 1:
-			return TransferFunctions.getGreenGradient();
+			return TransferFunctions.getGradientForColor( 2 );
 		case 2:
-			return TransferFunctions.getRedGradient();
+			return TransferFunctions.getGradientForColor( 3 );
 		case 3:
-			return TransferFunctions.getBlueGradient();
-		case 4:
-			return TransferFunctions.getRainbow();
+			return TransferFunctions.getGradientForColor( 1 );
 		}
 		return TransferFunctions.getGrayLevel();
 	}
 
+	public static Img< FloatType > makeImgFromBytes(
+			final long pVolumeWidth,
+			final long pVolumeHeight,
+			final long pVolumeDepth,
+			final int pBytesPerVoxel,
+			final boolean pFloatType,
+			final ByteBuffer[] pCaptureBuffers ) {
+
+		final ArrayImg< FloatType, FloatArray > img =
+				ArrayImgs.floats( pVolumeWidth, pVolumeHeight, pCaptureBuffers.length, pVolumeDepth );
+//		final RandomAccess< ShortType > raImg = img.randomAccess();
+
+		final Cursor< FloatType > targetCursor = img.localizingCursor();
+		while ( targetCursor.hasNext() ) {
+			targetCursor.fwd();
+
+			final long x = targetCursor.getLongPosition( 0 );
+			final long y = targetCursor.getLongPosition( 1 );
+			final int c = ( int ) targetCursor.getLongPosition( 2 );
+			final long z = targetCursor.getLongPosition( 3 );
+			int index = ( int ) ( ( z * pVolumeWidth * pVolumeHeight ) + ( y * pVolumeWidth ) + x );
+			index *= pBytesPerVoxel;
+
+			float value = 0;
+			if ( pBytesPerVoxel == 1 ) {
+				value = pCaptureBuffers[ c ].get( index );
+			} else if ( pBytesPerVoxel == 2 ) {
+//				if ( pFloatType ) {
+//					value = pCaptureBuffers[ c ].getFloat( index );
+//				} else {
+					value = pCaptureBuffers[ c ].getChar( index );
+//				}
+			} else {
+				throw new RuntimeException( "Capture feature does only support 1 or 2 bytes per voxel." );
+			}
+
+			// set converted value
+			targetCursor.get().set( value );
+		}
+
+		return img;
+	}
 }

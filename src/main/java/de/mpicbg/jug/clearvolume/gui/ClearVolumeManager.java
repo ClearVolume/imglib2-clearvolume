@@ -1,6 +1,5 @@
 package de.mpicbg.jug.clearvolume.gui;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,7 +112,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 				} else {
 					SwingUtilities.invokeAndWait( todo );
 				}
-			} catch ( InvocationTargetException | InterruptedException e ) {
+			} catch ( final Exception e ) {
 				System.err.println( "Closing of CV session was interrupted in ClearVolumeManager!" );
 			}
 		}

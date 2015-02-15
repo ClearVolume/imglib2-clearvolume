@@ -3,7 +3,15 @@
  */
 package de.mpicbg.jug.plugins;
 
+import ij.ImagePlus;
+import ij.measure.Calibration;
+
+import java.awt.Image;
 import java.nio.ByteBuffer;
+
+import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.real.FloatType;
 
 import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
@@ -11,6 +19,10 @@ import org.scijava.plugin.Plugin;
 
 import clearvolume.network.client.main.ClearVolumeClientMain;
 import clearvolume.renderer.VolumeCaptureListener;
+
+import com.apple.eawt.Application;
+
+import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 /**
  * @author jug
@@ -25,7 +37,35 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 	 */
 	@Override
 	public void run() {
-		ClearVolumeClientMain.launchClientGUI( this );
+		final String os = System.getProperty( "os.name" ).toLowerCase();
+		Image icon = null;
+		if ( os.indexOf( "mac" ) >= 0 ) {
+			icon = Application.getApplication().getDockIconImage();
+		} else if ( os.indexOf( "win" ) >= 0 ) {
+//			not yet clear
+			icon = null;
+		} else {
+//			not yet clear
+			icon = null;
+		}
+		final Image finalicon = icon;
+
+		ClearVolumeClientMain.launchClientGUI( this, false );
+
+		javax.swing.SwingUtilities.invokeLater( new Runnable() {
+
+			@Override
+			public void run() {
+				if ( os.indexOf( "mac" ) >= 0 ) {
+					Application.getApplication().setDockIconImage( finalicon );
+				} else if ( os.indexOf( "win" ) >= 0 ) {
+//					not yet clear
+				} else {
+//					not yet clear
+				}
+			}
+
+		} );
 	}
 
 	@Override
@@ -39,16 +79,19 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 			final double pVoxelWidth,
 			final double pVoxelHeight,
 			final double pVoxelDepth ) {
-		System.out.format( "Captured %d volume %s bpv=%d (%d, %d, %d) (%g, %g, %g) %s\n",
-				pCaptureBuffers.length,
-				pFloatType ? "float" : "int",
-				pBytesPerVoxel,
-				pVolumeWidth,
-				pVolumeHeight,
-				pVolumeDepth,
-				pVoxelWidth,
-				pVoxelHeight,
-				pVoxelDepth,
-				pCaptureBuffers[ 0 ].toString() );
+		final Img< FloatType > img =
+				ImgLib2ClearVolume.makeImgFromBytes(
+						pVolumeWidth,
+						pVolumeHeight,
+						pVolumeDepth,
+						pBytesPerVoxel,
+						pFloatType,
+						pCaptureBuffers );
+		final ImagePlus imagePlus = ImageJFunctions.show( img );
+		final Calibration calibration = imagePlus.getCalibration();
+		calibration.pixelWidth = pVoxelWidth;
+		calibration.pixelHeight = pVoxelHeight;
+		calibration.pixelDepth = pVoxelDepth;
+		imagePlus.setCalibration( calibration );
 	}
 }

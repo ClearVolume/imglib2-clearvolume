@@ -8,7 +8,6 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +121,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			} else {
 				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( InvocationTargetException | InterruptedException e ) {
+		} catch ( final Exception e ) {
 			System.err.println( "Launching CV session was interrupted in GenericClearVolumeGui!" );
 			e.printStackTrace();
 		}
@@ -178,7 +177,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			} else {
 				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( InvocationTargetException | InterruptedException e ) {
+		} catch ( final Exception e ) {
 			System.err.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
 		}
 
@@ -413,7 +412,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			} else {
 				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( InvocationTargetException | InterruptedException e ) {
+		} catch ( final Exception e ) {
 			System.err.println( "Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
 		}
 	}
