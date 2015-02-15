@@ -72,6 +72,12 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus, final int textureWidth, final int textureHeight ) {
 		super( true );
 
+//		final List< Image > icons = SwingUtilities.getWindowAncestor( this ).getIconImages();
+//		// Save those icons to resources folder
+//		// Build iconfilestring with pathnames to stored images
+//		String iconfilestring = "";
+//		System.setProperty( "newt.window.icons", iconfilestring );
+
 		this.imgPlus = imgPlus;
 		images = new ArrayList< RandomAccessibleInterval< T >>();
 		setTextureSize( textureWidth, textureHeight );

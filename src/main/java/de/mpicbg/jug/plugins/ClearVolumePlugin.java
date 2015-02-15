@@ -25,7 +25,9 @@ import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 /**
  * @author jug
  */
-@Plugin( menu = { @Menu( label = "Plugins" ), @Menu( label = "ClearVolume" ) }, description = "Opens Stack in ClearVolume.", headless = false, type = Command.class )
+@Plugin( menu = { @Menu( label = "Plugins" ),
+				 @Menu( label = "ClearVolume" ),
+				 @Menu( label = "Open in ClearVolume" ) }, description = "Opens Stack in ClearVolume.", headless = false, type = Command.class )
 public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> implements Command {
 
 	@Parameter( label = "3D ImgPlus to be shown." )
