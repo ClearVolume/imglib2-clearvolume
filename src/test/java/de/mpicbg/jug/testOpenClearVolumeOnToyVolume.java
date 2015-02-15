@@ -70,7 +70,8 @@ public class testOpenClearVolumeOnToyVolume {
 						512, 512,
 						false,
 						new double[] { 0. },
-						new double[] { 1.0 } );
+						new double[] { 1.0 },
+						true );
 		cv.setVoxelSize( 1., 1., 3.5 );
 		cv.requestDisplay();
 
