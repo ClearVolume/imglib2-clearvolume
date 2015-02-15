@@ -115,7 +115,8 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 		boolean ret = true;
 		String message = "";
 		if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 4 ) {
-			message = "Only images with 3 (X,Y,Z) or 4 (X,Y,Z,C) dimensions can be shown, yours has " + imgPlus.numDimensions();
+			message =
+					"Only images with 3 (X,Y,Z) or 4 (X,Y,C,Z) dimensions\ncan be shown, current image has " + imgPlus.numDimensions() + " dimensions.";
 			ret = false;
 		}
 
