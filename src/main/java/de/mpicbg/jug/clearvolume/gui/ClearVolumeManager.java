@@ -81,7 +81,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 				maxTextureWidth, maxTextureHeight,
 				true,
 				minIntensities,
-				maxIntensities );
+				maxIntensities,
+				useCuda );
 		cv.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
 	}
 

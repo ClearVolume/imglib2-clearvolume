@@ -224,9 +224,11 @@ public class ImgLib2ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
-			final boolean useInCanvas ) {
-		final ClearVolumeRendererInterface lClearVolumeRenderer =
-				ClearVolumeRendererFactory.newBestRenderer(
+			final boolean useInCanvas,
+			final boolean useCuda ) {
+		ClearVolumeRendererInterface lClearVolumeRenderer = null;
+		if ( useCuda ) {
+			lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
 						pWindowName,
 						pWindowWidth,
 						pWindowHeight,
@@ -235,7 +237,17 @@ public class ImgLib2ClearVolume {
 						pMaxTextureHeight,
 						channelImages.size(),
 						useInCanvas );
-
+		} else {
+			lClearVolumeRenderer = ClearVolumeRendererFactory.newOpenCLRenderer(
+					pWindowName,
+					pWindowWidth,
+					pWindowHeight,
+					2,
+					pMaxTextureWidth,
+					pMaxTextureHeight,
+					channelImages.size(),
+					useInCanvas );
+		}
 		for ( int channel = 0; channel < channelImages.size(); channel++ ) {
 			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes =
@@ -274,10 +286,11 @@ public class ImgLib2ClearVolume {
 			final int pWindowHeight,
 			final int pMaxTextureWidth,
 			final int pMaxTextureHeight,
-			final boolean useInCanvas ) {
+			final boolean useInCanvas,
+			final boolean useCuda ) {
 		final ClearVolumeRendererInterface cv =
 				initClearVolumeUnsignedShortArrayImg( channelImgs, pWindowName, pWindowWidth,
-						pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas );
+						pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas, useCuda );
 		cv.requestDisplay();
 		return cv;
 	}
@@ -387,7 +400,8 @@ public class ImgLib2ClearVolume {
 					final int pMaxTextureHeight,
 					final boolean useInCanvas,
 					final double[] min,
-					final double[] max ) {
+					final double[] max,
+					final boolean useCuda ) {
 		return initClearVolumeUnsignedShortArrayImg(
 				makeClearVolumeUnsignedShortTypeCopies( channelImages,
 						min,
@@ -397,7 +411,8 @@ public class ImgLib2ClearVolume {
 				pWindowHeight,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				useInCanvas );
+				useInCanvas,
+				useCuda );
 	}
 
 	/**
@@ -425,7 +440,8 @@ public class ImgLib2ClearVolume {
 					final int pMaxTextureHeight,
 					final boolean useInCanvas,
 					final double[] min,
-					final double[] max ) {
+					final double[] max,
+					final boolean useCuda ) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
 				makeClearVolumeUnsignedShortTypeCopies( channelImgs, min, max ),
 				pWindowName,
@@ -433,7 +449,8 @@ public class ImgLib2ClearVolume {
 				pWindowHeight,
 				pMaxTextureWidth,
 				pMaxTextureHeight,
-				useInCanvas );
+				useInCanvas,
+				useCuda );
 	}
 
 	/**
