@@ -69,7 +69,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		try {
 			URL iconURL = ClassLoader.getSystemResource( "isVisibleTrue.gif" );
 			if ( iconURL == null ) {
-				iconURL = getClass().getResource( "isVisibleTrue.gif" );
+				iconURL = getClass().getClassLoader().getResource( "isVisibleTrue.gif" );
 			}
 			final Image img = ImageIO.read( iconURL );
 			bVisible.setIcon( new ImageIcon( img.getScaledInstance(
@@ -90,7 +90,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		try {
 			URL iconURL = ClassLoader.getSystemResource( "isVisibleFalse.gif" );
 			if ( iconURL == null ) {
-				iconURL = getClass().getResource( "isVisibleFalse.gif" );
+				iconURL = getClass().getClassLoader().getResource( "isVisibleFalse.gif" );
 			}
 			final Image img = ImageIO.read( iconURL );
 			bVisible.setIcon( new ImageIcon( img.getScaledInstance(
