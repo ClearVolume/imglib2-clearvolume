@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.IOException;
+import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -44,19 +46,8 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 
 		bVisible = new JButton();
 		bVisible.addActionListener( this );
-		try {
-			final Image img =
-					ImageIO.read( ClassLoader.getSystemResource( "isVisibleTrue.gif" ) );
-			bVisible.setIcon( new ImageIcon( img.getScaledInstance(
-					20,
-					20,
-					java.awt.Image.SCALE_SMOOTH ) ) );
+		setVisibleIcon();
 
-		} catch ( final Exception e ) {
-			e.printStackTrace();
-			bVisible.setText( "√" );
-			bVisible.setForeground( Color.green );
-		}
 		sBrightness =
 				new JSlider( JSlider.HORIZONTAL, 0, 100, ( int ) ( cvm.getBrightness( channelId ) * 100 ) );
 		sBrightness.addChangeListener( this );
@@ -72,6 +63,48 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	}
 
 	/**
+	 * @throws IOException
+	 */
+	private void setVisibleIcon() {
+		try {
+			URL iconURL = ClassLoader.getSystemResource( "isVisibleTrue.gif" );
+			if ( iconURL == null ) {
+				iconURL = getClass().getResource( "isVisibleTrue.gif" );
+			}
+			final Image img = ImageIO.read( iconURL );
+			bVisible.setIcon( new ImageIcon( img.getScaledInstance(
+					20,
+					20,
+					java.awt.Image.SCALE_SMOOTH ) ) );
+		} catch ( final Exception e ) {
+			e.printStackTrace();
+			bVisible.setText( "√" );
+			bVisible.setForeground( Color.green );
+		}
+	}
+
+	/**
+	 * @throws IOException
+	 */
+	private void setInvisibleIcon() {
+		try {
+			URL iconURL = ClassLoader.getSystemResource( "isVisibleFalse.gif" );
+			if ( iconURL == null ) {
+				iconURL = getClass().getResource( "isVisibleFalse.gif" );
+			}
+			final Image img = ImageIO.read( iconURL );
+			bVisible.setIcon( new ImageIcon( img.getScaledInstance(
+					20,
+					20,
+					java.awt.Image.SCALE_SMOOTH ) ) );
+		} catch ( final Exception e ) {
+			e.printStackTrace();
+			bVisible.setText( "X" );
+			bVisible.setForeground( Color.red );
+		}
+	}
+
+	/**
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
@@ -82,30 +115,10 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 			if ( !visible ) {
 				visible = true;
 				cvm.setActiveChannelIndex( channelId );
-				try {
-					final Image img =
-							ImageIO.read( ClassLoader.getSystemResource( "isVisibleTrue.gif" ) );
-					bVisible.setIcon( new ImageIcon( img.getScaledInstance(
-							20,
-							20,
-							java.awt.Image.SCALE_SMOOTH ) ) );
-				} catch ( final Exception ioe ) {
-					bVisible.setText( "√" );
-					bVisible.setForeground( Color.green );
-				}
+				setVisibleIcon();
 			} else {
 				visible = false;
-				try {
-					final Image img =
-							ImageIO.read( ClassLoader.getSystemResource( "isVisibleFalse.gif" ) );
-					bVisible.setIcon( new ImageIcon( img.getScaledInstance(
-							20,
-							20,
-							java.awt.Image.SCALE_SMOOTH ) ) );
-				} catch ( final Exception ioe ) {
-					bVisible.setText( "X" );
-					bVisible.setForeground( Color.red );
-				}
+				setInvisibleIcon();
 			}
 			cvm.setChannelVisible( channelId, visible );
 
