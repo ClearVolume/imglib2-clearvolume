@@ -6,6 +6,7 @@ package de.mpicbg.jug.clearvolume.gui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 import clearvolume.renderer.ControlJPanel;
 
+import com.apple.eawt.Application;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 
@@ -437,4 +439,44 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		} );
 	}
 
+	/**
+	 * Call to retrieve the current app image. This will help you to circumvent
+	 * the jogl icon stealing bullshit!
+	 *
+	 * @return
+	 */
+	public static Image getCurrentAppIcon() {
+		final String os = System.getProperty( "os.name" ).toLowerCase();
+		Image icon = null;
+		if ( os.indexOf( "mac" ) >= 0 ) {
+			icon = Application.getApplication().getDockIconImage();
+		} else if ( os.indexOf( "win" ) >= 0 ) {
+//			not yet clear
+			icon = null;
+		} else {
+//			not yet clear
+			icon = null;
+		}
+		return icon;
+	}
+
+	/**
+	 * @param finalicon
+	 */
+	public static void setCurrentAppIcon( final Image finalicon ) {
+		final String os = System.getProperty( "os.name" ).toLowerCase();
+
+		SwingUtilities.invokeLater( new Runnable() {
+			@Override
+			public void run() {
+				if ( os.indexOf( "mac" ) >= 0 ) {
+					Application.getApplication().setDockIconImage( finalicon );
+				} else if ( os.indexOf( "win" ) >= 0 ) {
+//					not yet clear
+				} else {
+//					not yet clear
+				}
+			}
+		} );
+	}
 }

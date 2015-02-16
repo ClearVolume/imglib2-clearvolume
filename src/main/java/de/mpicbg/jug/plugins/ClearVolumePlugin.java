@@ -9,7 +9,6 @@ import java.awt.Image;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
@@ -20,8 +19,6 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-
-import com.apple.eawt.Application;
 
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 
@@ -69,39 +66,15 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 			frame.setLayout( new BorderLayout() );
 			frame.setBounds( ( screenDims.width - windowWidth ) / 2, ( screenDims.height - windowHeight ) / 2, windowWidth, windowHeight );
 
-			final String os = System.getProperty( "os.name" ).toLowerCase();
-			Image icon = null;
-			if ( os.indexOf( "mac" ) >= 0 ) {
-				icon = Application.getApplication().getDockIconImage();
-			} else if ( os.indexOf( "win" ) >= 0 ) {
-//				not yet clear
-				icon = null;
-			} else {
-//				not yet clear
-				icon = null;
-			}
-			final Image finalicon = icon;
+			final Image finalicon = GenericClearVolumeGui.getCurrentAppIcon();
 
 			panelGui =
 					new GenericClearVolumeGui< T >( imgPlus, textureResolution, useCuda );
 			frame.add( panelGui );
-			SwingUtilities.invokeLater( new Runnable() {
+			frame.setVisible( true );
+			frame.revalidate();
 
-				@Override
-				public void run() {
-					frame.setVisible( true );
-					frame.revalidate();
-
-					if ( os.indexOf( "mac" ) >= 0 ) {
-						Application.getApplication().setDockIconImage( finalicon );
-					} else if ( os.indexOf( "win" ) >= 0 ) {
-//						not yet clear
-					} else {
-//						not yet clear
-					}
-				}
-
-			} );
+			GenericClearVolumeGui.setCurrentAppIcon( finalicon );
 		}
 	}
 
