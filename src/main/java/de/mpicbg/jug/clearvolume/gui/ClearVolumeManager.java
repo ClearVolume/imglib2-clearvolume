@@ -92,7 +92,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	}
 
 	public void updateView() {
-		cv.notifyUpdateOfVolumeRenderingParameters();
+		cv.notifyChangeOfVolumeRenderingParameters();
 		cv.requestDisplay();
 	}
 
