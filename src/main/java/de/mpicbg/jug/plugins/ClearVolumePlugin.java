@@ -6,7 +6,9 @@ package de.mpicbg.jug.plugins;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.net.URL;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -20,6 +22,8 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import clearvolume.utils.AppleMac;
+import de.mpicbg.jug.clearvolume.gui.ClearVolumeSplashFrame;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 
 /**
@@ -68,11 +72,16 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 			final Image finalicon = GenericClearVolumeGui.getCurrentAppIcon();
 
+			final ClearVolumeSplashFrame loadFrame = new ClearVolumeSplashFrame();
+
 			panelGui =
 					new GenericClearVolumeGui< T >( imgPlus, textureResolution, useCuda );
 			frame.add( panelGui );
+			setClearVolumeIcon( frame );
 			frame.setVisible( true );
 			frame.revalidate();
+
+			loadFrame.dispose();
 
 			GenericClearVolumeGui.setCurrentAppIcon( finalicon );
 		}
@@ -99,4 +108,25 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 		return ret;
 	}
+
+	private void setClearVolumeIcon( final JFrame frame ) {
+		try
+		{
+			final URL lImageURL =
+					getClass().getResource( "/clearvolume/icon/ClearVolumeIcon256.png" );
+			final ImageIcon lImageIcon = new ImageIcon( lImageURL );
+
+			if ( AppleMac.isMac() )
+			{
+				AppleMac.setApplicationIcon( lImageIcon.getImage() );
+				AppleMac.setApplicationName( "ClearVolume" );
+			}
+
+			frame.setIconImage( lImageIcon.getImage() );
+		} catch ( final Throwable e ) {
+			e.printStackTrace();
+		}
+
+	}
+
 }

@@ -466,6 +466,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public static void setCurrentAppIcon( final Image finalicon ) {
 		final String os = System.getProperty( "os.name" ).toLowerCase();
 
+		if ( finalicon == null ) return;
+
 		SwingUtilities.invokeLater( new Runnable() {
 			@Override
 			public void run() {
