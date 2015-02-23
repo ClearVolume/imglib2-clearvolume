@@ -26,7 +26,7 @@ The TableCellViewer [plugin in KNIME](http://tech.knime.org/book/clearvolume):
 * Knime installation instructions can be found [here](http://tech.knime.org/book/clearvolume).
 
 
-#### You would like a superficial explainatoin of thow it all works?
+#### You would like a superficial explanation of how it all works?
 
 Since ClearVolume can, to date, only show images stored in native `byte` arrays we need to translate imglib2 image container to native byte type images. While this is ok for 8bit images, 16bit images are represented as arrays of type `short` in imglib.
 Here you find two things that enable you to display every `RealType` image container coming from imglib2 into ClearVolume:
