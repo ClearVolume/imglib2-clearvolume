@@ -170,7 +170,7 @@ public class ImgLib2ClearVolume {
 					channelImgs.get( channel ).dimension( 2 ) );
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
-					getTransferFunctionForChannel( channel ) );
+					getTransferFunctionForChannel( channel, channelImgs.size() ) );
 		}
 		return lClearVolumeRenderer;
 	}
@@ -253,16 +253,16 @@ public class ImgLib2ClearVolume {
 					useInCanvas );
 		}
 		for ( int channel = 0; channel < channelImages.size(); channel++ ) {
-			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes =
 					channelImages.get( channel ).update( null ).getCurrentStorageArray();
-			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+			lClearVolumeRenderer.setVolumeDataBuffer( channel,
+					ByteBuffer.wrap( bytes ),
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
-					getTransferFunctionForChannel( channel ) );
+					getTransferFunctionForChannel( channel, channelImages.size() ) );
 		}
 		return lClearVolumeRenderer;
 	}
@@ -459,18 +459,36 @@ public class ImgLib2ClearVolume {
 
 	/**
 	 * @param channel
+	 * @param numChannels
 	 * @return
 	 */
-	private static TransferFunction getTransferFunctionForChannel( final int channel ) {
-		switch ( channel % 4 ) {
-		case 0:
-			return TransferFunctions.getGrayLevel();
-		case 1:
-			return TransferFunctions.getGradientForColor( 2 );
-		case 2:
-			return TransferFunctions.getGradientForColor( 3 );
-		case 3:
-			return TransferFunctions.getGradientForColor( 1 );
+	private static TransferFunction getTransferFunctionForChannel(
+			final int channel,
+			final int numChannels ) {
+		if ( numChannels == 1 ) {
+			return TransferFunctions.getGradientForColor( 0 );
+		} else if ( numChannels == 2 ) {
+			if ( channel == 0 )
+				return TransferFunctions.getGradientForColor( 0 );
+			else
+				return TransferFunctions.getGradientForColor( 1 );
+		} else {
+			switch ( channel % 7 ) {
+			case 0:
+				return TransferFunctions.getGradientForColor( 1, 0, 0, 1 ); //red
+			case 1:
+				return TransferFunctions.getGradientForColor( 0, 1, 0, 1 ); //green
+			case 2:
+				return TransferFunctions.getGradientForColor( 0, 0, 1, 1 ); //blue
+			case 3:
+				return TransferFunctions.getGrayLevel();
+			case 4:
+				return TransferFunctions.getGradientForColor( 0, 1, 1, 1 ); //cyan
+			case 5:
+				return TransferFunctions.getGradientForColor( 1, 0, 1, 1 ); //magenta
+			case 6:
+				return TransferFunctions.getGradientForColor( 1, 1, 0, 1 ); //yellow
+			}
 		}
 		return TransferFunctions.getGrayLevel();
 	}

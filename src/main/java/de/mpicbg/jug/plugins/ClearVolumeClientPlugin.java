@@ -19,10 +19,8 @@ import org.scijava.plugin.Plugin;
 
 import clearvolume.network.client.main.ClearVolumeClientMain;
 import clearvolume.renderer.VolumeCaptureListener;
-
-import com.apple.eawt.Application;
-
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
+import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 
 /**
  * @author jug
@@ -37,35 +35,9 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 	 */
 	@Override
 	public void run() {
-		final String os = System.getProperty( "os.name" ).toLowerCase();
-		Image icon = null;
-		if ( os.indexOf( "mac" ) >= 0 ) {
-			icon = Application.getApplication().getDockIconImage();
-		} else if ( os.indexOf( "win" ) >= 0 ) {
-//			not yet clear
-			icon = null;
-		} else {
-//			not yet clear
-			icon = null;
-		}
-		final Image finalicon = icon;
+		final Image appicon = GenericClearVolumeGui.getCurrentAppIcon();
 
-		ClearVolumeClientMain.launchClientGUI( this, false );
-
-		javax.swing.SwingUtilities.invokeLater( new Runnable() {
-
-			@Override
-			public void run() {
-				if ( os.indexOf( "mac" ) >= 0 ) {
-					Application.getApplication().setDockIconImage( finalicon );
-				} else if ( os.indexOf( "win" ) >= 0 ) {
-//					not yet clear
-				} else {
-//					not yet clear
-				}
-			}
-
-		} );
+		ClearVolumeClientMain.launchClientGUI( this, appicon, false );
 	}
 
 	@Override
