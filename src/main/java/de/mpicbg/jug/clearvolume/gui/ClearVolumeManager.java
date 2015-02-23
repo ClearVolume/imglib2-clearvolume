@@ -1,5 +1,6 @@
 package de.mpicbg.jug.clearvolume.gui;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,16 +9,19 @@ import javax.swing.SwingUtilities;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.ComputeMinMax;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.transferf.TransferFunction;
+import de.mpicbg.jug.clearvolume.ClearVolumeUnsignedShortType;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> implements Runnable {
 
 	private ClearVolumeRendererInterface cv;
-	private final List< RandomAccessibleInterval< T >> images;
+	private List< RandomAccessibleInterval< T >> images;
 	private final int numChannels;
 
 	private int activeChannelIndex;
@@ -47,12 +51,6 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 			final int maxTextureHeight,
 			final boolean useCuda ) {
 
-		this.images = imagesToShow;
-		this.numChannels = images.size();
-
-		activeLayerChangedListeners = new ArrayList< ActiveLayerListener >();
-		this.setActiveChannelIndex( 0 );
-
 		this.maxTextureWidth = maxTextureWidth;
 		this.maxTextureHeight = maxTextureHeight;
 
@@ -61,6 +59,20 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 		this.voxelSizeX = 1.;
 		this.voxelSizeY = 1.;
 		this.voxelSizeZ = 1.;
+
+		activeLayerChangedListeners = new ArrayList< ActiveLayerListener >();
+		this.setActiveChannelIndex( 0 );
+		this.numChannels = imagesToShow.size();
+
+		this.images = null;
+		setImages( imagesToShow );
+	}
+
+	/**
+	 * @param imagesToShow
+	 */
+	private void setImages( final List< RandomAccessibleInterval< T >> imagesToShow ) {
+		this.images = imagesToShow;
 
 		this.minIntensities = new double[ numChannels ];
 		this.maxIntensities = new double[ numChannels ];
@@ -71,6 +83,55 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 			minIntensities[ i ] = min.getRealDouble();
 			maxIntensities[ i ] = max.getRealDouble();
 		}
+	}
+
+	/**
+	 * Updates the currently displayed channel images by the given ones.
+	 *
+	 * @param imagesToShow
+	 * @return true if the update was successful
+	 */
+	public boolean updateImages( final List< RandomAccessibleInterval< T >> imagesToShow ) {
+		if ( images.size() != imagesToShow.size() ) { return false; }
+
+		int c = 0;
+		this.minIntensities = new double[ imagesToShow.size() ];
+		this.maxIntensities = new double[ imagesToShow.size() ];
+		for ( final RandomAccessibleInterval< T > img : imagesToShow ) {
+			final T min = img.randomAccess().get().createVariable();
+			final T max = img.randomAccess().get().createVariable();
+			ComputeMinMax.computeMinMax( img, min, max );
+			minIntensities[ c ] = min.getRealDouble();
+			maxIntensities[ c ] = max.getRealDouble();
+			c++;
+		}
+
+		final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >> converted =
+				ImgLib2ClearVolume.makeClearVolumeUnsignedShortTypeCopies(
+						imagesToShow,
+						minIntensities,
+						maxIntensities );
+
+		c = 0;
+		for ( final RandomAccessibleInterval< T > img : imagesToShow ) {
+			final int sizeX = ( int ) ( img.dimension( 0 ) );
+			final int sizeY = ( int ) ( img.dimension( 1 ) );
+			final int sizeZ = ( int ) ( img.dimension( 2 ) );
+			final byte[] bytes =
+					converted.get( c ).update( null ).getCurrentStorageArray();
+			cv.setVolumeDataBuffer(
+					c,
+					ByteBuffer.wrap( bytes ),
+					sizeX,
+					sizeY,
+					sizeZ,
+					voxelSizeX,
+					voxelSizeY,
+					voxelSizeZ );
+			c++;
+		}
+
+		return true;
 	}
 
 	@Override

@@ -19,8 +19,11 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.imagej.ImgPlus;
 import net.imglib2.RandomAccessibleInterval;
@@ -39,7 +42,8 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel
 		implements
 		ActionListener,
-		ActiveLayerListener {
+		ActiveLayerListener,
+		ChangeListener {
 
 	private Container ctnrClearVolume;
 	private NewtCanvasAWT newtClearVolumeCanvas;
@@ -51,6 +55,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private JTextField txtVoxelSizeX;
 	private JTextField txtVoxelSizeY;
 	private JTextField txtVoxelSizeZ;
+
+	private int t = -1;
+	private JSlider sliderTime;
 
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
@@ -95,6 +102,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
 				images.add( rai );
 			}
+		} else if ( imgPlus.numDimensions() == 5 ) {
+			t = 0;
+			extractChannelsAtT( t );
 		}
 	}
 
@@ -338,7 +348,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// Channel Widgets
 		// ===============
 		panelControlsHelper = new JPanel( new GridLayout( channelWidgets.size(), 1 ) );
-		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		panelControlsHelper.setBorder( BorderFactory.createCompoundBorder(
+				BorderFactory.createEmptyBorder( 0, 5, 2, 2 ),
+				BorderFactory.createTitledBorder( "Channels" ) ) );
 
 		for ( int i = 0; i < channelWidgets.size(); i++ ) {
 			panelControlsHelper.add( channelWidgets.get( i ) );
@@ -348,6 +360,24 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
 		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
+
+		// Time Slider
+		// ===========
+		if ( imgPlus.numDimensions() == 5 ) {
+			panelControlsHelper = new JPanel( new BorderLayout() );
+			panelControlsHelper.setBorder( BorderFactory.createCompoundBorder(
+					BorderFactory.createEmptyBorder( 0, 5, 2, 2 ),
+					BorderFactory.createTitledBorder( "Time" ) ) );
+
+			sliderTime = new JSlider( 0, ( int ) imgPlus.max( 4 ), 0 );
+			sliderTime.addChangeListener( this );
+			panelControlsHelper.add( sliderTime );
+
+			shrinkingHelper = new JPanel( new BorderLayout() );
+			shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
+			shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+			panelControls.add( shrinkingHelper );
+		}
 
 		// Display hijacked control container if possible
 		// ----------------------------------------------
@@ -481,4 +511,41 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			}
 		} );
 	}
+
+	/**
+	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
+	 */
+	@Override
+	public void stateChanged( final ChangeEvent e ) {
+		if ( e.getSource().equals( sliderTime ) ) {
+			t = sliderTime.getValue();
+			extractChannelsAtT( t );
+			showExtractedChannels();
+		}
+	}
+
+	/**
+	 * @param t
+	 */
+	public void extractChannelsAtT( final int t ) {
+		final List< RandomAccessibleInterval< T >> newimages =
+				new ArrayList< RandomAccessibleInterval< T >>();
+
+		final RandomAccessibleInterval< T > timePointToShow = Views.hyperSlice( imgPlus, 4, t );
+		for ( int channel = 0; channel < timePointToShow.dimension( 2 ); channel++ ) {
+			final RandomAccessibleInterval< T > rai =
+					Views.hyperSlice( timePointToShow, 2, channel );
+			newimages.add( rai );
+		}
+		images = newimages;
+	}
+
+	/**
+	 * Updates an validly initialized ClearVolume Manager so that he shows the
+	 * data in local field <code>images</code>.
+	 */
+	private void showExtractedChannels() {
+		cvManager.updateImages( images );
+	}
+
 }

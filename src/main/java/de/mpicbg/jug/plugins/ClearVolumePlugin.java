@@ -104,9 +104,9 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 		if ( imgPlus == null ) {
 			message = "ClearVolume can not be initialized with a null image!";
 			ret = false;
-		} else if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 4 ) {
+		} else if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 5 ) {
 			message =
-					"Only images with 3 (X,Y,Z) or 4 (X,Y,C,Z) dimensions\ncan be shown, current image has " + imgPlus.numDimensions() + " dimensions.";
+					"Only images with 3 (X,Y,Z) or 4 (X,Y,C,Z) and 5 (X,Y,C,Z,T) dimensions\ncan be shown, current image has " + imgPlus.numDimensions() + " dimensions.";
 			ret = false;
 		}
 
