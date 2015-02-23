@@ -4,6 +4,7 @@
 package de.mpicbg.jug.plugins;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.net.URL;
@@ -58,7 +59,7 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 		imgPlus = ( ImgPlus< T > ) dataset.getImgPlus();
 
-		final boolean isShowable = checkIfShowable( imgPlus, true );
+		final boolean isShowable = checkIfShowable( frame, imgPlus, true );
 		useCuda = !( !useCuda ); // to avoid eclipse making this field 'final' -- stupid!
 
 		if ( isShowable ) {
@@ -93,17 +94,28 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	 * @param imgPlus2
 	 * @return true, if image is of supported type and structure.
 	 */
-	private boolean checkIfShowable( final ImgPlus< T > imgPlus2, final boolean showErrorDialogs ) {
+	public static boolean checkIfShowable(
+			final Component parent,
+			final ImgPlus< ? > imgPlus,
+			final boolean showErrorDialogs ) {
 		boolean ret = true;
 		String message = "";
-		if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 4 ) {
+
+		if ( imgPlus == null ) {
+			message = "ClearVolume can not be initialized with a null image!";
+			ret = false;
+		} else if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 4 ) {
 			message =
 					"Only images with 3 (X,Y,Z) or 4 (X,Y,C,Z) dimensions\ncan be shown, current image has " + imgPlus.numDimensions() + " dimensions.";
 			ret = false;
 		}
 
 		if ( !message.equals( "" ) ) {
-			JOptionPane.showMessageDialog( frame, message, "Image Format Error", JOptionPane.ERROR_MESSAGE );
+			JOptionPane.showMessageDialog(
+					parent,
+					message,
+					"Image Format Error",
+					JOptionPane.ERROR_MESSAGE );
 		}
 
 		return ret;
