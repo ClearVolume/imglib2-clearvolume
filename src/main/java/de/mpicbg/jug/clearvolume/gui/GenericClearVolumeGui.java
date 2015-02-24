@@ -4,17 +4,21 @@
 package de.mpicbg.jug.clearvolume.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -61,6 +65,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private int t = -1;
 	private JSlider sliderTime;
 	private JLabel lblTime;
+	private JButton buttonPlayTime;
 	private boolean bDoRenormalize;
 	private JCheckBox cbRenormalizeFrames;
 
@@ -76,6 +81,10 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private ImgPlus< T > imgPlus;
 	private List< RandomAccessibleInterval< T >> images;
 	private ClearVolumeManager< T > cvManager;
+	private Thread threadLoopTime;
+	private JLabel lblFps;
+	private JTextField txtFps;
+	private int fps = 5;
 
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus ) {
 		this( imgPlus, 768, true );
@@ -354,9 +363,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// Channel Widgets
 		// ===============
 		panelControlsHelper = new JPanel( new GridLayout( channelWidgets.size(), 1 ) );
-		panelControlsHelper.setBorder( BorderFactory.createCompoundBorder(
-				BorderFactory.createEmptyBorder( 0, 5, 2, 2 ),
-				BorderFactory.createTitledBorder( "Channels" ) ) );
+		panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Channels" ) );
 
 		for ( int i = 0; i < channelWidgets.size(); i++ ) {
 			panelControlsHelper.add( channelWidgets.get( i ) );
@@ -367,22 +374,33 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
 
-		// Time Slider
-		// ===========
+		// Time related
+		// ============
 		if ( imgPlus.numDimensions() == 5 ) {
 			panelControlsHelper = new JPanel( new MigLayout() );
 			panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Time" ) );
 
-			lblTime = new JLabel( "t=" + ( t + 1 ) );
+			lblTime = new JLabel( String.format( "t=%02d", ( t + 1 ) ) );
+			lblFps = new JLabel( "fps:" );
+
+			txtFps = new JTextField( 2 );
+			txtFps.setText( "" + fps );
+			txtFps.addActionListener( this );
 
 			sliderTime = new JSlider( 0, ( int ) imgPlus.max( 4 ), 0 );
 			sliderTime.addChangeListener( this );
+			buttonPlayTime = new JButton();
+			buttonPlayTime.addActionListener( this );
+			setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
 			cbRenormalizeFrames = new JCheckBox( "normalize each time-point" );
 			cbRenormalizeFrames.addActionListener( this );
 
 			panelControlsHelper.add( lblTime );
-			panelControlsHelper.add( sliderTime, "wrap" );
-			panelControlsHelper.add( cbRenormalizeFrames, "span" );
+			panelControlsHelper.add( buttonPlayTime );
+			panelControlsHelper.add( sliderTime, "span, wrap" );
+			panelControlsHelper.add( lblFps );
+			panelControlsHelper.add( txtFps );
+			panelControlsHelper.add( cbRenormalizeFrames );
 
 			shrinkingHelper = new JPanel( new BorderLayout() );
 			shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
@@ -526,6 +544,48 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			bDoRenormalize = cbRenormalizeFrames.isSelected();
 			extractChannelsAtT( t );
 			showExtractedChannels();
+		}  else if ( e.getSource().equals( txtFps ) ) {
+			try{
+				fps = Integer.parseInt( txtFps.getText() );
+			} catch(final NumberFormatException nfe) {
+				//fps = fps;
+			}
+		} else if ( e.getSource().equals( buttonPlayTime ) ) {
+			if ( threadLoopTime == null ) {
+				setIcon( buttonPlayTime, "pause.gif", "X", Color.BLUE );
+				threadLoopTime = new Thread( new Runnable() {
+
+					boolean doit = true;
+
+					@Override
+					public void run() {
+						while ( doit ) {
+							try {
+								if ( fps == 0 )
+									Thread.sleep( 5000 );
+								else
+									Thread.sleep( 1000 / fps );
+								t++;
+								if ( t > sliderTime.getMaximum() ) t = 0;
+								sliderTime.setValue( t );
+							} catch ( final InterruptedException e ) {
+								e.printStackTrace();
+							}
+						}
+					}
+
+					public void endLooping() {
+						doit = false;
+					}
+
+				} );
+				threadLoopTime.start();
+			} else {
+				threadLoopTime.stop();
+//				threadLoopTime.endLooping();
+				threadLoopTime = null;
+				setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
+			}
 		}
 
 	}
@@ -537,7 +597,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public void stateChanged( final ChangeEvent e ) {
 		if ( e.getSource().equals( sliderTime ) ) {
 			t = sliderTime.getValue();
-			lblTime.setText( "t=" + ( t + 1 ) );
+			lblTime.setText( String.format( "t=%02d", ( t + 1 ) ) );
 
 			extractChannelsAtT( t );
 			showExtractedChannels();
@@ -566,6 +626,30 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 */
 	private void showExtractedChannels() {
 		cvManager.updateImages( images, bDoRenormalize );
+	}
+
+	/**
+	 */
+	private void setIcon(
+			final JButton button,
+			final String filename,
+			final String altText,
+			final Color altColor ) {
+		try {
+			URL iconURL = ClassLoader.getSystemResource( filename );
+			if ( iconURL == null ) {
+				iconURL = getClass().getClassLoader().getResource( filename );
+			}
+			final Image img = ImageIO.read( iconURL );
+			button.setIcon( new ImageIcon( img.getScaledInstance(
+					20,
+					20,
+					java.awt.Image.SCALE_SMOOTH ) ) );
+		} catch ( final Exception e ) {
+			e.printStackTrace();
+			button.setText( altText );
+			button.setForeground( altColor );
+		}
 	}
 
 }
