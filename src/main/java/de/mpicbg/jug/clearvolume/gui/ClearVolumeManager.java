@@ -92,18 +92,35 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	 * @return true if the update was successful
 	 */
 	public boolean updateImages( final List< RandomAccessibleInterval< T >> imagesToShow ) {
+		return updateImages( imagesToShow, true );
+	}
+
+	/**
+	 * Updates the currently displayed channel images by the given ones.
+	 *
+	 * @param imagesToShow
+	 * @param doNormalize
+	 *
+	 * @return true if the update was successful
+	 */
+	public boolean updateImages(
+			final List< RandomAccessibleInterval< T >> imagesToShow,
+			final boolean doNormalize ) {
+
 		if ( images.size() != imagesToShow.size() ) { return false; }
 
 		int c = 0;
-		this.minIntensities = new double[ imagesToShow.size() ];
-		this.maxIntensities = new double[ imagesToShow.size() ];
-		for ( final RandomAccessibleInterval< T > img : imagesToShow ) {
-			final T min = img.randomAccess().get().createVariable();
-			final T max = img.randomAccess().get().createVariable();
-			ComputeMinMax.computeMinMax( img, min, max );
-			minIntensities[ c ] = min.getRealDouble();
-			maxIntensities[ c ] = max.getRealDouble();
-			c++;
+		if ( doNormalize ) {
+			this.minIntensities = new double[ imagesToShow.size() ];
+			this.maxIntensities = new double[ imagesToShow.size() ];
+			for ( final RandomAccessibleInterval< T > img : imagesToShow ) {
+				final T min = img.randomAccess().get().createVariable();
+				final T max = img.randomAccess().get().createVariable();
+				ComputeMinMax.computeMinMax( img, min, max );
+				minIntensities[ c ] = min.getRealDouble();
+				maxIntensities[ c ] = max.getRealDouble();
+				c++;
+			}
 		}
 
 		final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >> converted =

@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -30,6 +31,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
+import net.miginfocom.swing.MigLayout;
 import clearvolume.renderer.ControlJPanel;
 
 import com.apple.eawt.Application;
@@ -58,6 +60,10 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 	private int t = -1;
 	private JSlider sliderTime;
+	private JLabel lblTime;
+	private boolean bDoRenormalize;
+	private JCheckBox cbRenormalizeFrames;
+
 
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
@@ -364,14 +370,19 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// Time Slider
 		// ===========
 		if ( imgPlus.numDimensions() == 5 ) {
-			panelControlsHelper = new JPanel( new BorderLayout() );
-			panelControlsHelper.setBorder( BorderFactory.createCompoundBorder(
-					BorderFactory.createEmptyBorder( 0, 5, 2, 2 ),
-					BorderFactory.createTitledBorder( "Time" ) ) );
+			panelControlsHelper = new JPanel( new MigLayout() );
+			panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Time" ) );
+
+			lblTime = new JLabel( "t=" + ( t + 1 ) );
 
 			sliderTime = new JSlider( 0, ( int ) imgPlus.max( 4 ), 0 );
 			sliderTime.addChangeListener( this );
-			panelControlsHelper.add( sliderTime );
+			cbRenormalizeFrames = new JCheckBox( "normalize each time-point" );
+			cbRenormalizeFrames.addActionListener( this );
+
+			panelControlsHelper.add( lblTime );
+			panelControlsHelper.add( sliderTime, "wrap" );
+			panelControlsHelper.add( cbRenormalizeFrames, "span" );
 
 			shrinkingHelper = new JPanel( new BorderLayout() );
 			shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
@@ -399,27 +410,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 //		this.setIgnoreRepaint( false );
 		this.setVisible( true );
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void actionPerformed( final ActionEvent e ) {
-
-		if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
-			activateGuiValues();
-			cvManager.updateView();
-		} else if ( e.getSource().equals( buttonResetView ) ) {
-			cvManager.setVoxelSize( imgPlus.averageScale( 0 ), imgPlus.averageScale( 1 ), imgPlus.averageScale( 2 ) );
-			pushParamsToGui();
-			cvManager.resetView();
-		} else if ( e.getSource().equals( buttonToggleBox ) ) {
-			cvManager.toggleBox();
-		} else if ( e.getSource().equals( buttonToggleRecording ) ) {
-			cvManager.toggleRecording();
-		}
-
 	}
 
 	/**
@@ -513,12 +503,42 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed( final ActionEvent e ) {
+
+		if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
+			activateGuiValues();
+			cvManager.updateView();
+		} else if ( e.getSource().equals( buttonResetView ) ) {
+			cvManager.setVoxelSize(
+					imgPlus.averageScale( 0 ),
+					imgPlus.averageScale( 1 ),
+					imgPlus.averageScale( 2 ) );
+			pushParamsToGui();
+			cvManager.resetView();
+		} else if ( e.getSource().equals( buttonToggleBox ) ) {
+			cvManager.toggleBox();
+		} else if ( e.getSource().equals( buttonToggleRecording ) ) {
+			cvManager.toggleRecording();
+		} else if ( e.getSource().equals( cbRenormalizeFrames ) ) {
+			bDoRenormalize = cbRenormalizeFrames.isSelected();
+			extractChannelsAtT( t );
+			showExtractedChannels();
+		}
+
+	}
+
+	/**
 	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
 	 */
 	@Override
 	public void stateChanged( final ChangeEvent e ) {
 		if ( e.getSource().equals( sliderTime ) ) {
 			t = sliderTime.getValue();
+			lblTime.setText( "t=" + ( t + 1 ) );
+
 			extractChannelsAtT( t );
 			showExtractedChannels();
 		}
@@ -545,7 +565,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * data in local field <code>images</code>.
 	 */
 	private void showExtractedChannels() {
-		cvManager.updateImages( images );
+		cvManager.updateImages( images, bDoRenormalize );
 	}
 
 }
