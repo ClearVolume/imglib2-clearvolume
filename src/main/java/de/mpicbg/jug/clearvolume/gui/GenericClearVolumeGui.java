@@ -51,6 +51,33 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		ActiveLayerListener,
 		ChangeListener {
 
+	public class LoopThread extends Thread {
+
+		boolean doit = true;
+
+		@Override
+		public void run() {
+			while ( doit ) {
+				try {
+					if ( fps == 0 )
+						Thread.sleep( 5000 );
+					else
+						Thread.sleep( 1000 / fps );
+					t++;
+					if ( t > sliderTime.getMaximum() ) t = 0;
+					sliderTime.setValue( t );
+				} catch ( final InterruptedException e ) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		public void endLooping() {
+			doit = false;
+		}
+
+	}
+
 	private Container ctnrClearVolume;
 	private NewtCanvasAWT newtClearVolumeCanvas;
 	private JPanel panelControls;
@@ -81,7 +108,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private ImgPlus< T > imgPlus;
 	private List< RandomAccessibleInterval< T >> images;
 	private ClearVolumeManager< T > cvManager;
-	private Thread threadLoopTime;
+	private LoopThread threadLoopTime;
 	private JLabel lblFps;
 	private JTextField txtFps;
 	private int fps = 5;
@@ -553,36 +580,10 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		} else if ( e.getSource().equals( buttonPlayTime ) ) {
 			if ( threadLoopTime == null ) {
 				setIcon( buttonPlayTime, "pause.gif", "X", Color.BLUE );
-				threadLoopTime = new Thread( new Runnable() {
-
-					boolean doit = true;
-
-					@Override
-					public void run() {
-						while ( doit ) {
-							try {
-								if ( fps == 0 )
-									Thread.sleep( 5000 );
-								else
-									Thread.sleep( 1000 / fps );
-								t++;
-								if ( t > sliderTime.getMaximum() ) t = 0;
-								sliderTime.setValue( t );
-							} catch ( final InterruptedException e ) {
-								e.printStackTrace();
-							}
-						}
-					}
-
-					public void endLooping() {
-						doit = false;
-					}
-
-				} );
+				threadLoopTime = new LoopThread();
 				threadLoopTime.start();
 			} else {
-				threadLoopTime.stop();
-//				threadLoopTime.endLooping();
+				threadLoopTime.endLooping();
 				threadLoopTime = null;
 				setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
 			}
