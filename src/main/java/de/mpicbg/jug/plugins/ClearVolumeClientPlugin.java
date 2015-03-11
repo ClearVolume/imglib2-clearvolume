@@ -18,7 +18,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Plugin;
 
 import clearvolume.network.client.main.ClearVolumeClientMain;
-import clearvolume.renderer.VolumeCaptureListener;
+import clearvolume.renderer.listeners.VolumeCaptureListener;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 

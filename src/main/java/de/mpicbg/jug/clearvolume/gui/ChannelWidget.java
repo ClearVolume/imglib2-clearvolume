@@ -139,11 +139,9 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 						newColor.getGreen() / 255f,
 						newColor.getBlue() / 255f,
 						newColor.getAlpha() / 255f );
-			} else {
-				tf = TransferFunctions.getRainbowSolid();
+				cvm.setTransferFunction( channelId, tf );
+				bTransferFunction.setIcon( new TransferFunctionGradientIcon( 20, 20, tf ) );
 			}
-			cvm.setTransferFunction( channelId, tf );
-			bTransferFunction.setIcon( new TransferFunctionGradientIcon( 20, 20, tf ) );
 
 			cvm.setActiveChannelIndex( channelId );
 			cvm.updateView();
