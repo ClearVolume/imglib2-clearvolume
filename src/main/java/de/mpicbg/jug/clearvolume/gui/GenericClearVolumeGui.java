@@ -31,6 +31,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.imagej.ImgPlus;
+import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -138,15 +139,24 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
 		if ( imgPlus == null ) return;
 
+		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
+		final int dT = imgPlus.dimensionIndex( Axes.TIME );
+
 		// if given imgPlus has multiple channels: separate them!
 		if ( imgPlus.numDimensions() == 3 ) {
 			images.add( imgPlus );
 		} else if ( imgPlus.numDimensions() == 4 ) {
-			for ( int channel = 0; channel < imgPlus.dimension( 2 ); channel++ ) {
+			if ( dC == -1 ) {
+				if ( dT == -1 ) { throw new IllegalArgumentException( "Four dimensional input image without CHANNEL axis must contain a TIME axis! Neither of both found..." ); }
+				t = 0;
+				extractChannelsAtT( t );
+			} else
+				for ( int channel = 0; channel < imgPlus.dimension( dC ); channel++ ) {
 				final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
 				images.add( rai );
 			}
 		} else if ( imgPlus.numDimensions() == 5 ) {
+			if ( dT == -1 ) { throw new IllegalArgumentException( "Five dimensional input image must contain a TIME axis!" ); }
 			t = 0;
 			extractChannelsAtT( t );
 		}
@@ -419,7 +429,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		// Time related
 		// ============
-		if ( imgPlus.numDimensions() == 5 ) {
+		if ( imgPlus.dimensionIndex( Axes.TIME ) != -1 ) {
 			panelControlsHelper = new JPanel( new MigLayout() );
 			panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Time" ) );
 
@@ -430,7 +440,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			txtFps.setText( "" + fps );
 			txtFps.addActionListener( this );
 
-			sliderTime = new JSlider( 0, ( int ) imgPlus.max( 4 ), 0 );
+			sliderTime =
+					new JSlider( 0, ( int ) imgPlus.max( imgPlus.dimensionIndex( Axes.TIME ) ), 0 );
 			sliderTime.addChangeListener( this );
 			buttonPlayTime = new JButton();
 			buttonPlayTime.addActionListener( this );
@@ -630,10 +641,17 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		final List< RandomAccessibleInterval< T >> newimages =
 				new ArrayList< RandomAccessibleInterval< T >>();
 
-		final RandomAccessibleInterval< T > timePointToShow = Views.hyperSlice( imgPlus, 4, t );
-		for ( int channel = 0; channel < timePointToShow.dimension( 2 ); channel++ ) {
+		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
+		final int dT = imgPlus.dimensionIndex( Axes.TIME );
+
+		final RandomAccessibleInterval< T > timePointToShow =
+				Views.hyperSlice( imgPlus, dT, t );
+		if ( dC == -1 ) {
+			newimages.add( timePointToShow );
+		} else
+			for ( int channel = 0; channel < timePointToShow.dimension( dC ); channel++ ) {
 			final RandomAccessibleInterval< T > rai =
-					Views.hyperSlice( timePointToShow, 2, channel );
+					Views.hyperSlice( timePointToShow, dC, channel );
 			newimages.add( rai );
 		}
 		images = newimages;

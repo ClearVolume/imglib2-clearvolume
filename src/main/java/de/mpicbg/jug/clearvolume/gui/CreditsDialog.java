@@ -27,7 +27,7 @@ public class CreditsDialog extends JDialog implements ActionListener {
 		super( SwingUtilities.getWindowAncestor( parent ) );
 
 		final int w = 640;
-		final int h = 500;
+		final int h = 520;
 		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		final int screenX = ( int ) screenSize.getWidth();
 		final int screenY = ( int ) screenSize.getHeight();

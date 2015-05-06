@@ -19,10 +19,12 @@ public class testImageJPlugin {
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/droso.tif";
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic.tif";
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic_labels.tif";
-		final String fname =
-				"/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic_twoChannel.tif";
+//		final String fname =
+//				"/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic_twoChannel.tif";
 //		final String fname =
 //				"/Users/jug/Desktop/ClearVolumeDatasetSamples/Flybrain_2ch_12_smallSize.tif";
+		final String fname =
+				"/Users/jug/Desktop/ClearVolumeDatasetSamples/mitosis4d.tif";
 //		final String fname =
 //				"/Users/jug/Desktop/ClearVolumeDatasetSamples/mitosis5d.tif";
 //		final String fname =

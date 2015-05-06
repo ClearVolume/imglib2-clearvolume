@@ -75,7 +75,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	 */
 	private void setChannelActivationButtonIcon() {
 		bActivate.setText( "Channel " + channelId );
-		bActivate.setForeground( Color.gray );
+		bActivate.setForeground( Color.darkGray );
 	}
 
 	/**
