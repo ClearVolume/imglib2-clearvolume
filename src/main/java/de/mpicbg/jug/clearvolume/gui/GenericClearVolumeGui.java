@@ -142,7 +142,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
 		final int dT = imgPlus.dimensionIndex( Axes.TIME );
 
-		// if given imgPlus has multiple channels: separate them!
 		if ( imgPlus.numDimensions() == 3 ) {
 			images.add( imgPlus );
 		} else if ( imgPlus.numDimensions() == 4 ) {
@@ -192,16 +191,19 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			e.printStackTrace();
 		}
 
-		if ( imgPlus.numDimensions() == 3 ) {
+		final int dX = imgPlus.dimensionIndex( Axes.X );
+		final int dY = imgPlus.dimensionIndex( Axes.Y );
+		final int dZ = imgPlus.dimensionIndex( Axes.Z );
+		if ( dX != -1 && dY != -1 && dZ != -1 ) {
+			cvManager.setVoxelSize(
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.X ) ),
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Y ) ),
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Z ) ) );
+		} else if ( imgPlus.numDimensions() >= 3 ) {
 			cvManager.setVoxelSize(
 					imgPlus.averageScale( 0 ),
 					imgPlus.averageScale( 1 ),
 					imgPlus.averageScale( 2 ) );
-		} else if ( imgPlus.numDimensions() == 4 ) {
-			cvManager.setVoxelSize(
-					imgPlus.averageScale( 0 ),
-					imgPlus.averageScale( 1 ),
-					imgPlus.averageScale( 3 ) );
 		}
 		cvManager.run();
 
@@ -585,9 +587,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			cvManager.updateView();
 		} else if ( e.getSource().equals( buttonResetView ) ) {
 			cvManager.setVoxelSize(
-					imgPlus.averageScale( 0 ),
-					imgPlus.averageScale( 1 ),
-					imgPlus.averageScale( 2 ) );
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.X ) ),
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Y ) ),
+					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Z ) ) );
 			pushParamsToGui();
 			cvManager.resetView();
 		} else if ( e.getSource().equals( buttonToggleBox ) ) {

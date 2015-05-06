@@ -6,6 +6,7 @@ package de.mpicbg.jug.clearvolume;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
@@ -255,10 +256,13 @@ public class ImgLib2ClearVolume {
 					channelImages.size(),
 					useInCanvas );
 		}
+
 		for ( int channel = 0; channel < channelImages.size(); channel++ ) {
+
 			final byte[] bytes =
 					channelImages.get( channel ).update( null ).getCurrentStorageArray();
-			lClearVolumeRenderer.setVolumeDataBuffer( channel,
+			lClearVolumeRenderer.setVolumeDataBuffer( 0, TimeUnit.MILLISECONDS,
+					channel,
 					ByteBuffer.wrap( bytes ),
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
@@ -267,6 +271,7 @@ public class ImgLib2ClearVolume {
 					channel,
 					getTransferFunctionForChannel( channel, channelImages.size() ) );
 		}
+
 		return lClearVolumeRenderer;
 	}
 
@@ -325,6 +330,7 @@ public class ImgLib2ClearVolume {
 					min[ i ],
 					max[ i ] ) );
 		}
+
 		return ret;
 	}
 
