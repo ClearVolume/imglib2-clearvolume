@@ -19,6 +19,7 @@ import org.scijava.plugin.Plugin;
 
 import clearvolume.network.client.main.ClearVolumeClientMain;
 import clearvolume.renderer.listeners.VolumeCaptureListener;
+import coremem.types.NativeTypeEnum;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 
@@ -40,11 +41,15 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 		ClearVolumeClientMain.launchClientGUI( this, appicon, false );
 	}
 
+	/**
+	 * @see clearvolume.renderer.listeners.VolumeCaptureListener#capturedVolume(java.nio.ByteBuffer[],
+	 *      coremem.types.NativeTypeEnum, long, long, long, double, double,
+	 *      double)
+	 */
 	@Override
 	public void capturedVolume(
 			final ByteBuffer[] pCaptureBuffers,
-			final boolean pFloatType,
-			final int pBytesPerVoxel,
+			final NativeTypeEnum pNativeTypeEnum,
 			final long pVolumeWidth,
 			final long pVolumeHeight,
 			final long pVolumeDepth,
@@ -56,8 +61,7 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 						pVolumeWidth,
 						pVolumeHeight,
 						pVolumeDepth,
-						pBytesPerVoxel,
-						pFloatType,
+						pNativeTypeEnum,
 						pCaptureBuffers );
 		final ImagePlus imagePlus = ImageJFunctions.show( img );
 		final Calibration calibration = imagePlus.getCalibration();

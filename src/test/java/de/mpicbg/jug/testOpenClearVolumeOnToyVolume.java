@@ -26,6 +26,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunctions;
+import coremem.types.NativeTypeEnum;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 /**
@@ -219,7 +220,7 @@ public class testOpenClearVolumeOnToyVolume {
 				ClearVolumeRendererFactory.newBestRenderer( "ClearVolumeTest",
 						1024,
 						1024,
-						1,
+						NativeTypeEnum.UnsignedByte,
 						512,
 						512,
 						1,
@@ -228,7 +229,8 @@ public class testOpenClearVolumeOnToyVolume {
 		lClearVolumeRenderer.setVisible( true );
 
 		lClearVolumeRenderer.setCurrentRenderLayer( 0 );
-		lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( lVolumeDataArray ),
+		lClearVolumeRenderer.setVolumeDataBuffer( 1,
+				ByteBuffer.wrap( lVolumeDataArray ),
 				lResolutionX,
 				lResolutionY,
 				lResolutionZ );

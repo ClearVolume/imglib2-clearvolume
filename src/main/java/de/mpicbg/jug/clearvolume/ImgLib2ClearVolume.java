@@ -30,6 +30,7 @@ import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunction;
 import clearvolume.transferf.TransferFunctions;
+import coremem.types.NativeTypeEnum;
 import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 
 /**
@@ -69,15 +70,16 @@ public class ImgLib2ClearVolume {
 						pWindowName,
 						pWindowWidth,
 						pWindowHeight,
-						1,
+						NativeTypeEnum.UnsignedByte,
 						pMaxTextureWidth,
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
-			lClearVolumeRenderer.setCurrentRenderLayer( channel );
+//			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
-			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+			lClearVolumeRenderer.setVolumeDataBuffer( channel,
+					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
@@ -146,13 +148,13 @@ public class ImgLib2ClearVolume {
 						pWindowName,
 						pWindowWidth,
 						pWindowHeight,
-						2,
+						NativeTypeEnum.UnsignedShort,
 						pMaxTextureWidth,
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
-			lClearVolumeRenderer.setCurrentRenderLayer( channel );
+//			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 
 			// get the byte array out of the Img<ByteArray>
 			final short[] shorts =
@@ -164,7 +166,8 @@ public class ImgLib2ClearVolume {
 				bytes[ i + 1 ] = ( byte ) ( ( s >> 8 ) & 0xff );
 				i += 2;
 			}
-			lClearVolumeRenderer.setVolumeDataBuffer( ByteBuffer.wrap( bytes ),
+			lClearVolumeRenderer.setVolumeDataBuffer( channel,
+					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
@@ -236,7 +239,7 @@ public class ImgLib2ClearVolume {
 						pWindowName,
 						pWindowWidth,
 						pWindowHeight,
-						2,
+						NativeTypeEnum.UnsignedShort,
 						pMaxTextureWidth,
 						pMaxTextureHeight,
 						channelImages.size(),
@@ -246,7 +249,7 @@ public class ImgLib2ClearVolume {
 					pWindowName,
 					pWindowWidth,
 					pWindowHeight,
-					2,
+					NativeTypeEnum.UnsignedShort,
 					pMaxTextureWidth,
 					pMaxTextureHeight,
 					channelImages.size(),
@@ -497,9 +500,17 @@ public class ImgLib2ClearVolume {
 			final long pVolumeWidth,
 			final long pVolumeHeight,
 			final long pVolumeDepth,
-			final int pBytesPerVoxel,
-			final boolean pFloatType,
+			final NativeTypeEnum pNativeTypeEnum,
 			final ByteBuffer[] pCaptureBuffers ) {
+
+		int pBytesPerVoxel = -1;
+		if ( pNativeTypeEnum.equals( NativeTypeEnum.UnsignedByte ) ) {
+			pBytesPerVoxel = 1;
+		}
+		if ( pNativeTypeEnum.equals( NativeTypeEnum.UnsignedShort ) ) {
+			pBytesPerVoxel = 2;
+		}
+		if ( pBytesPerVoxel == -1 ) { throw new RuntimeException( "Given native type (given via NativeTypeEnum) not yet supported. We appologize!" ); }
 
 		final ArrayImg< FloatType, FloatArray > img =
 				ArrayImgs.floats( pVolumeWidth, pVolumeHeight, pCaptureBuffers.length, pVolumeDepth );

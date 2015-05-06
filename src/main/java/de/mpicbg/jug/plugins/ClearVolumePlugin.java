@@ -45,7 +45,8 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	@Parameter( label = "Max texture size", min = "16", max = "1600", stepSize = "100", columns = 5, description = "Max texture resolution (per axis)." )
 	private int textureResolution = 768;
 
-	@Parameter( label = "try using CUDA if supported" )
+	// Disable CUDA option until it is really stable...
+//	@Parameter( label = "try using CUDA if supported" )
 	private boolean useCuda = false;
 
 	private JFrame frame = null;

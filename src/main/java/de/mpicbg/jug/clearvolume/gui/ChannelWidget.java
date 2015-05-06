@@ -16,7 +16,6 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingUtilities;
@@ -35,6 +34,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	private final int channelId;
 	private final ClearVolumeManager< ? > cvm;
 
+	private final JButton bActivate;
 	private final JButton bVisible;
 	private final JSlider sBrightness;
 	private final JButton bTransferFunction;
@@ -42,6 +42,10 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	public ChannelWidget( final ClearVolumeManager< ? > model, final int channelId ) {
 		this.cvm = model;
 		this.channelId = channelId;
+
+		bActivate = new JButton();
+		bActivate.addActionListener( this );
+		setChannelActivationButtonIcon();
 
 		bVisible = new JButton();
 		bVisible.addActionListener( this );
@@ -54,11 +58,24 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		bTransferFunction = new JButton( model.getTransferFunctionColorIcon( channelId ) );
 		bTransferFunction.addActionListener( this );
 
+//		final JPanel panelHelper = new JPanel();
+//		panelHelper.setLayout( new BoxLayout( panelHelper, BoxLayout.X_AXIS ) );
+//		panelHelper.add( bActivate );
+//		panelHelper.add( bVisible );
+
 		this.setLayout( new BorderLayout() );
-		this.add( new JLabel( String.format( "Ch.%d", channelId ) ), BorderLayout.NORTH );
+//		this.add( new JLabel( String.format( "Ch.%d", channelId ) ), BorderLayout.NORTH );
+		this.add( bActivate, BorderLayout.NORTH );
 		this.add( bVisible, BorderLayout.WEST );
 		this.add( sBrightness, BorderLayout.CENTER );
 		this.add( bTransferFunction, BorderLayout.EAST );
+	}
+
+	/**
+	 */
+	private void setChannelActivationButtonIcon() {
+		bActivate.setText( "Channel " + channelId );
+		bActivate.setForeground( Color.gray );
 	}
 
 	/**
@@ -145,6 +162,8 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 
 			cvm.setActiveChannelIndex( channelId );
 			cvm.updateView();
+		} else if ( e.getSource().equals( bActivate ) ) {
+			cvm.setActiveChannelIndex( channelId );
 		}
 	}
 
