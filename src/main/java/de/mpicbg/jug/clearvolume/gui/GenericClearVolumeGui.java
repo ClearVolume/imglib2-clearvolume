@@ -82,6 +82,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private NewtCanvasAWT newtClearVolumeCanvas;
 	private JPanel panelControls;
 
+	private JButton buttonCredits;
+
 	private JButton buttonResetView;
 	private JButton buttonUpdateView;
 
@@ -322,6 +324,20 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControls.setLayout( new BoxLayout( panelControls, BoxLayout.Y_AXIS ) );
 		panelControls.add( Box.createVerticalGlue() );
 
+		// Credits baby!!!
+		buttonCredits = new JButton( "Help + how to cite us!" );
+		buttonCredits.setForeground( Color.darkGray );
+		buttonCredits.addActionListener( this );
+
+		final JPanel panelCreditsHelper = new JPanel( new GridLayout( 1, 1 ) );
+		panelCreditsHelper.setBorder( BorderFactory.createEmptyBorder( 5, 5, 2, 2 ) );
+
+		panelCreditsHelper.add( buttonCredits );
+
+		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
+		shrinkingHelper.add( panelCreditsHelper, BorderLayout.SOUTH );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		panelControls.add( shrinkingHelper );
 
 		// Parameters that require a view update
 		// -------------------------------------
@@ -348,7 +364,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		panelControlsHelper.add( lblVoxelSizeZ );
 		panelControlsHelper.add( txtVoxelSizeZ );
 
-		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
+		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
 		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
 		panelControls.add( shrinkingHelper );
@@ -587,6 +603,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				threadLoopTime = null;
 				setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
 			}
+		} else if ( e.getSource().equals( buttonCredits ) ) {
+			new CreditsDialog( this );
 		}
 
 	}
