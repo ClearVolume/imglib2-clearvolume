@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -34,7 +35,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	private final int channelId;
 	private final ClearVolumeManager< ? > cvm;
 
-	private final JButton bActivate;
+	private final JToggleButton bActivate;
 	private final JButton bVisible;
 	private final JSlider sBrightness;
 	private final JButton bTransferFunction;
@@ -43,7 +44,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		this.cvm = model;
 		this.channelId = channelId;
 
-		bActivate = new JButton();
+		bActivate = new JToggleButton();
 		bActivate.addActionListener( this );
 		setChannelActivationButtonIcon();
 
@@ -58,13 +59,7 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 		bTransferFunction = new JButton( model.getTransferFunctionColorIcon( channelId ) );
 		bTransferFunction.addActionListener( this );
 
-//		final JPanel panelHelper = new JPanel();
-//		panelHelper.setLayout( new BoxLayout( panelHelper, BoxLayout.X_AXIS ) );
-//		panelHelper.add( bActivate );
-//		panelHelper.add( bVisible );
-
 		this.setLayout( new BorderLayout() );
-//		this.add( new JLabel( String.format( "Ch.%d", channelId ) ), BorderLayout.NORTH );
 		this.add( bActivate, BorderLayout.NORTH );
 		this.add( bVisible, BorderLayout.WEST );
 		this.add( sBrightness, BorderLayout.CENTER );
@@ -163,7 +158,11 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 			cvm.setActiveChannelIndex( channelId );
 			cvm.updateView();
 		} else if ( e.getSource().equals( bActivate ) ) {
-			cvm.setActiveChannelIndex( channelId );
+			if ( !bActivate.isSelected() ) {
+				bActivate.setSelected( true );
+			} else {
+				cvm.setActiveChannelIndex( channelId );
+			}
 		}
 	}
 
@@ -192,4 +191,18 @@ public class ChannelWidget extends JPanel implements ActionListener, ChangeListe
 	 */
 	@Override
 	public void focusLost( final FocusEvent e ) {}
+
+	/**
+	 * Adds the visuals that make this layer look selected.
+	 */
+	public void addSelectionVisuals() {
+		bActivate.setSelected( true );
+	}
+
+	/**
+	 * Removes the visuals that make this layer look selected.
+	 */
+	public void removeSelectionVisuals() {
+		bActivate.setSelected( false );
+	}
 }

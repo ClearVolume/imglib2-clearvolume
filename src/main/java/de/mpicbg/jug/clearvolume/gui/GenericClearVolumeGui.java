@@ -423,6 +423,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		for ( int i = 0; i < channelWidgets.size(); i++ ) {
 			panelControlsHelper.add( channelWidgets.get( i ) );
 		}
+		channelWidgets.get( 0 ).addSelectionVisuals();
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
@@ -518,6 +519,14 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 */
 	@Override
 	public void activeLayerChanged( final int layerId ) {
+		int i = 0;
+		for ( final ChannelWidget cw : channelWidgets ) {
+			if ( i != layerId ) {
+				cw.removeSelectionVisuals();
+			}
+			i++;
+		}
+
 		this.remove( panelClearVolumeControl );
 		panelClearVolumeControl =
 				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
