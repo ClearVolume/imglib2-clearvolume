@@ -26,7 +26,44 @@ public class ClearVolumeSplashFrame extends JFrame {
 	private final int windowWidth = 450;
 	private final int windowHeight = 160;
 
-	Thread progressThread;
+	private class KillableThread extends Thread {
+
+		private boolean killYourself = false;
+		private final JProgressBar bar;
+
+		public KillableThread( final JProgressBar bar ) {
+			this.bar = bar;
+		}
+
+		public void requestKill() {
+			killYourself = true;
+		}
+
+		@Override
+		public void run() {
+			try {
+				while ( !killYourself ) {
+					SwingUtilities.invokeLater( new Runnable() {
+
+						@Override
+						public void run() {
+							int v = bar.getValue() + 1;
+							if ( v > 100 ) {
+								v = 0;
+							}
+							bar.setValue( v );
+							bar.repaint();
+						}
+					} );
+					Thread.sleep( 100 );
+				}
+			} catch ( final Throwable t ) {
+				t.printStackTrace();
+			}
+		}
+	}
+
+	KillableThread progressThread;
 
 	public ClearVolumeSplashFrame() {
 		super( "Loading ClearVolume..." );
@@ -53,32 +90,7 @@ public class ClearVolumeSplashFrame extends JFrame {
 		final JProgressBar bar = new JProgressBar( JProgressBar.HORIZONTAL, 0, 100 );
 		this.add( bar, BorderLayout.SOUTH );
 
-		progressThread = new Thread( new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					while ( true ) {
-						SwingUtilities.invokeLater( new Runnable() {
-
-							@Override
-							public void run() {
-								int v = bar.getValue() + 1;
-								if ( v > 100 ) {
-									v = 0;
-								}
-								bar.setValue( v );
-								bar.repaint();
-							}
-						} );
-						Thread.sleep( 100 );
-					}
-				} catch ( final Throwable t ) {
-					t.printStackTrace();
-				}
-			}
-
-		} );
+		progressThread = new KillableThread( bar );
 		progressThread.setDaemon( true );
 		progressThread.start();
 
@@ -101,7 +113,7 @@ public class ClearVolumeSplashFrame extends JFrame {
 
 	@Override
 	public void dispose() {
-		progressThread.stop();
+		progressThread.requestKill();
 
 		final ClearVolumeSplashFrame self = this;
 		SwingUtilities.invokeLater( new Runnable() {
