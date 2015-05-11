@@ -145,7 +145,6 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 					voxelSizeX,
 					voxelSizeY,
 					voxelSizeZ );
-			System.out.println( ">>>>> " + voxelSizeZ );
 			c++;
 		}
 
