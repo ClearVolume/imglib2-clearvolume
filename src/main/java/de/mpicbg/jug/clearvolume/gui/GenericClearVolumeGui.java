@@ -30,17 +30,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.apple.eawt.Application;
+import com.jogamp.newt.awt.NewtCanvasAWT;
+
+import clearvolume.renderer.ControlJPanel;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.display.ColorTable;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
-import clearvolume.renderer.ControlJPanel;
-
-import com.apple.eawt.Application;
-import com.jogamp.newt.awt.NewtCanvasAWT;
 
 
 /**
@@ -116,6 +117,13 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private JTextField txtFps;
 	private int fps = 5;
 
+	/**
+	 * The LUTs as they are received from the DatasetView.
+	 * They are converted into ClearVolume TransferFunctions and set before
+	 * rendering.
+	 */
+	private List< ColorTable > luts;
+
 	public GenericClearVolumeGui( final ImgPlus< T > imgPlus ) {
 		this( imgPlus, 768, true );
 	}
@@ -124,9 +132,24 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			final ImgPlus< T > imgPlus,
 			final int textureResolution,
 			final boolean useCuda ) {
+		this( imgPlus, null, textureResolution, useCuda );
+	}
+
+	/**
+	 * @param imgPlus2
+	 * @param luts
+	 * @param textureResolution
+	 * @param useCuda
+	 */
+	public GenericClearVolumeGui(
+			final ImgPlus< T > imgPlus2,
+			final List< ColorTable > luts,
+			final int textureResolution,
+			final boolean useCuda ) {
 		super( true );
 
 		this.imgPlus = imgPlus;
+		this.luts = luts;
 		images = new ArrayList< RandomAccessibleInterval< T >>();
 		setTextureSizeAndCudaFlag( textureResolution, useCuda );
 
@@ -176,7 +199,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				@Override
 				public void run() {
 					cvManager =
-							new ClearVolumeManager< T >( images, maxTextureResolution, maxTextureResolution, useCuda );
+							new ClearVolumeManager< T >( images, luts, maxTextureResolution, maxTextureResolution, useCuda );
 					cvManager.addActiveLayerChangedListener( self );
 				}
 			};
@@ -235,7 +258,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				@Override
 				public void run() {
 					cvManager =
-							new ClearVolumeManager< T >( oldImages, maxTextureResolution, maxTextureResolution, useCuda );
+							new ClearVolumeManager< T >( oldImages, luts, maxTextureResolution, maxTextureResolution, useCuda );
 					cvManager.addActiveLayerChangedListener( self );
 				}
 			};
@@ -657,6 +680,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		final RandomAccessibleInterval< T > timePointToShow =
 				Views.hyperSlice( imgPlus, dT, t );
+		imgPlus.getColorTable( dC );
 		if ( dC == -1 ) {
 			newimages.add( timePointToShow );
 		} else

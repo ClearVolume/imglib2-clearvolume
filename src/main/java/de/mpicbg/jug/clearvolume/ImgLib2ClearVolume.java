@@ -8,12 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import clearvolume.renderer.ClearVolumeRendererInterface;
+import clearvolume.renderer.factory.ClearVolumeRendererFactory;
+import clearvolume.transferf.TransferFunction;
+import clearvolume.transferf.TransferFunction1D;
+import clearvolume.transferf.TransferFunctions;
+import coremem.types.NativeTypeEnum;
+import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorTable;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -27,12 +35,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
-import clearvolume.renderer.ClearVolumeRendererInterface;
-import clearvolume.renderer.factory.ClearVolumeRendererFactory;
-import clearvolume.transferf.TransferFunction;
-import clearvolume.transferf.TransferFunctions;
-import coremem.types.NativeTypeEnum;
-import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 
 /**
  * @author jug
@@ -551,5 +553,21 @@ public class ImgLib2ClearVolume {
 		}
 
 		return img;
+	}
+
+	/**
+	 * @param lut
+	 * @return
+	 */
+	public static TransferFunction getTransferFunctionFor( final ColorTable lut ) {
+		final TransferFunction1D tf = new TransferFunction1D();
+		for ( int i = 0; i < lut.getLength(); i++ ) {
+			final float[] comps = new float[] { 0f, 0f, 0f, 0f };
+			for ( int c = 0; c < lut.getComponentCount(); c++ ) {
+				comps[ i ] = lut.get( c, i );
+			}
+			tf.addPoint( comps[ 0 ], comps[ 1 ], comps[ 2 ], comps[ 3 ] );
+		}
+		return tf;
 	}
 }

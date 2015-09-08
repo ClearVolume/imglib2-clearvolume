@@ -7,16 +7,17 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.stats.ComputeMinMax;
-import net.imglib2.img.array.ArrayImg;
-import net.imglib2.img.basictypeaccess.array.ByteArray;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.transferf.TransferFunction;
 import de.mpicbg.jug.clearvolume.ClearVolumeUnsignedShortType;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.stats.ComputeMinMax;
+import net.imglib2.display.ColorTable;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.basictypeaccess.array.ByteArray;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 
 public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> implements Runnable {
 
@@ -43,10 +44,11 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 	 * @param ctnrClearVolume
 	 */
 	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow ) {
-		this( imagesToShow, 758, 768, true );
+		this( imagesToShow, null, 758, 768, true );
 	}
 
 	public ClearVolumeManager( final List< RandomAccessibleInterval< T >> imagesToShow,
+			final List< ColorTable > luts,
 			final int maxTextureWidth,
 			final int maxTextureHeight,
 			final boolean useCuda ) {
@@ -65,13 +67,16 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 		this.numChannels = imagesToShow.size();
 
 		this.images = null;
-		setImages( imagesToShow );
+		setImages( imagesToShow, luts );
 	}
 
 	/**
 	 * @param imagesToShow
+	 * @param luts
 	 */
-	private void setImages( final List< RandomAccessibleInterval< T >> imagesToShow ) {
+	private void setImages(
+			final List< RandomAccessibleInterval< T > > imagesToShow,
+			final List< ColorTable > luts ) {
 		this.images = imagesToShow;
 
 		this.minIntensities = new double[ numChannels ];
@@ -82,6 +87,13 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 			ComputeMinMax.computeMinMax( images.get( i ), min, max );
 			minIntensities[ i ] = min.getRealDouble();
 			maxIntensities[ i ] = max.getRealDouble();
+
+			if ( luts != null && luts.size() > i ) {
+				final ColorTable lut = luts.get( i );
+				cv.setTransferFunction(
+						i,
+						ImgLib2ClearVolume.getTransferFunctionFor( lut ) );
+			}
 		}
 	}
 

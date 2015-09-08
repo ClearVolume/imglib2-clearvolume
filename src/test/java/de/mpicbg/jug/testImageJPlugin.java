@@ -3,7 +3,9 @@ package de.mpicbg.jug;
 import java.io.File;
 import java.io.IOException;
 
+import net.imagej.Dataset;
 import net.imagej.ImageJ;
+import net.imagej.display.DataView;
 
 
 /**
@@ -34,15 +36,22 @@ public class testImageJPlugin {
 
 		final ImageJ ij = new ImageJ();
 		try {
-			Object img = null;
+			Dataset ds = null;
+			DataView dv = null;
 			if ( file.exists() && file.canRead() ) {
-				img = ij.io().open( fname );
+				ds = ij.scifio().datasetIO().open( fname );
+				dv = ij.imageDisplay().createDataView( ds );
+				ij.ui().show( ds );
 			}
 
 			ij.ui().showUI();
 
-			if ( img != null ) {
-				ij.command().run( de.mpicbg.jug.plugins.ClearVolumePlugin.class, true, "dataset", img );
+			if ( ds != null ) {
+				ij.command().run(
+						de.mpicbg.jug.plugins.ClearVolumePlugin.class,
+						true,
+						"datasetView",
+						dv );
 			}
 		} catch ( final IOException e ) {
 			e.printStackTrace();
