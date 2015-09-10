@@ -40,12 +40,12 @@
 		<dependency>
  			<groupId>net.clearvolume</groupId>
  			<artifactId>clearvolume</artifactId>
-			<version>0.9.7</version>
+			<version>1.0.4</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
  	        <artifactId>cleargl</artifactId>
-	        <version>0.9.9</version>
+	        <version>1.0.1</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
