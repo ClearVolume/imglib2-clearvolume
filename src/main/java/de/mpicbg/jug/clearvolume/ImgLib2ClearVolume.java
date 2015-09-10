@@ -216,6 +216,8 @@ public class ImgLib2ClearVolume {
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
 	 *
+	 * @param luts
+	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
@@ -229,6 +231,7 @@ public class ImgLib2ClearVolume {
 	 */
 	public static ClearVolumeRendererInterface initClearVolumeUnsignedShortArrayImg(
 			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImages,
+			final List< ColorTable > luts,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -269,9 +272,16 @@ public class ImgLib2ClearVolume {
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
-			lClearVolumeRenderer.setTransferFunction(
-					channel,
-					getTransferFunctionForChannel( channel, channelImages.size() ) );
+
+			if ( luts != null && luts.size() > channel ) {
+				final ColorTable lut = luts.get( channel );
+				final TransferFunction tf = ImgLib2ClearVolume.getTransferFunctionFor( lut );
+				lClearVolumeRenderer.setTransferFunction( channel, tf );
+			} else {
+				lClearVolumeRenderer.setTransferFunction(
+						channel,
+						getTransferFunctionForChannel( channel, channelImages.size() ) );
+			}
 		}
 
 		return lClearVolumeRenderer;
@@ -295,6 +305,7 @@ public class ImgLib2ClearVolume {
 	 */
 	public static ClearVolumeRendererInterface showClearVolumeUnsignedShortArrayImgWindow(
 			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImgs,
+			final List< ColorTable > luts,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -303,7 +314,11 @@ public class ImgLib2ClearVolume {
 			final boolean useInCanvas,
 			final boolean useCuda ) {
 		final ClearVolumeRendererInterface cv =
-				initClearVolumeUnsignedShortArrayImg( channelImgs, pWindowName, pWindowWidth,
+				initClearVolumeUnsignedShortArrayImg(
+						channelImgs,
+						luts,
+						pWindowName,
+						pWindowWidth,
 						pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas, useCuda );
 		cv.requestDisplay();
 		return cv;
@@ -395,6 +410,7 @@ public class ImgLib2ClearVolume {
 	 * Note: any given image will be duplicated in memory!
 	 *
 	 * @param channelImages
+	 * @param luts
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -408,6 +424,7 @@ public class ImgLib2ClearVolume {
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
 			initRealImgs(
 					final List< RandomAccessibleInterval< R >> channelImages,
+			final List< ColorTable > luts,
 					final String pWindowName,
 					final int pWindowWidth,
 					final int pWindowHeight,
@@ -418,9 +435,11 @@ public class ImgLib2ClearVolume {
 					final double[] max,
 					final boolean useCuda ) {
 		return initClearVolumeUnsignedShortArrayImg(
-				makeClearVolumeUnsignedShortTypeCopies( channelImages,
+				makeClearVolumeUnsignedShortTypeCopies(
+						channelImages,
 						min,
 						max ),
+				luts,
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -448,6 +467,7 @@ public class ImgLib2ClearVolume {
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
 			showRealImgs(
 					final List< RandomAccessibleInterval< R > > channelImgs,
+					final List< ColorTable > luts,
 					final String pWindowName,
 					final int pWindowWidth,
 					final int pWindowHeight,
@@ -459,6 +479,7 @@ public class ImgLib2ClearVolume {
 					final boolean useCuda ) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
 				makeClearVolumeUnsignedShortTypeCopies( channelImgs, min, max ),
+				luts,
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -564,9 +585,16 @@ public class ImgLib2ClearVolume {
 		for ( int i = 0; i < lut.getLength(); i++ ) {
 			final float[] comps = new float[] { 0f, 0f, 0f, 0f };
 			for ( int c = 0; c < lut.getComponentCount(); c++ ) {
-				comps[ i ] = lut.get( c, i );
+				comps[ c ] = lut.get( c, i ) / 255f;
 			}
-			tf.addPoint( comps[ 0 ], comps[ 1 ], comps[ 2 ], comps[ 3 ] );
+//			System.out.println(
+//					String.format(
+//							"(%.2f,%.2f,%.2f,%.2f)",
+//							comps[ 0 ],
+//							comps[ 1 ],
+//							comps[ 2 ],
+//							comps[ 3 ] ) );
+			tf.addPoint( comps[ 0 ], comps[ 1 ], comps[ 2 ], 1.0 /*comps[ 3 ]*/ );
 		}
 		return tf;
 	}

@@ -65,9 +65,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 						Thread.sleep( 5000 );
 					else
 						Thread.sleep( 1000 / fps );
-					t++;
-					if ( t > sliderTime.getMaximum() ) t = 0;
-					sliderTime.setValue( t );
+					timeIndexToShow++;
+					if ( timeIndexToShow > sliderTime.getMaximum() ) timeIndexToShow = 0;
+					sliderTime.setValue( timeIndexToShow );
 				} catch ( final InterruptedException e ) {
 					e.printStackTrace();
 				}
@@ -93,7 +93,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private JTextField txtVoxelSizeY;
 	private JTextField txtVoxelSizeZ;
 
-	private int t = -1;
+	private int timeIndexToShow = 0;
 	private JSlider sliderTime;
 	private JLabel lblTime;
 	private JButton buttonPlayTime;
@@ -142,7 +142,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @param useCuda
 	 */
 	public GenericClearVolumeGui(
-			final ImgPlus< T > imgPlus2,
+			final ImgPlus< T > imgPlus,
 			final List< ColorTable > luts,
 			final int textureResolution,
 			final boolean useCuda ) {
@@ -182,7 +182,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				addImagePerChannel( imgPlus, dC );
 			} else
 			if ( dX >= 0 && dY >= 0 && dT >= 0 ) {
-				extractChannelsAtT( t, dC, dT );
+				extractChannelsAtT( timeIndexToShow, dC, dT );
 			} else {
 				throw new IllegalArgumentException( "3 dimensional input image must have X and Y axes plus either Z, CHANNEL, or TIME." );
 			}
@@ -191,15 +191,15 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				addImagePerChannel( imgPlus, dC );
 			} else
 			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC < 0 && dT >= 0 ) {
-				t = 0;
-				extractChannelsAtT( t, dC, dT );
+//				t = 0;
+				extractChannelsAtT( timeIndexToShow, dC, dT );
 			} else {
 				throw new IllegalArgumentException( "4 dimensional input image must have X, Y and Z axes plus either CHANNEL, or TIME." );
 			}
 		} else if ( imgPlus.numDimensions() == 5 ) {
 			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT >= 0 ) {
-				t = 0;
-				extractChannelsAtT( t, dC, dT );
+//				t = 0;
+				extractChannelsAtT( timeIndexToShow, dC, dT );
 			} else {
 				throw new IllegalArgumentException( "Five dimensional input image must contain X,Y,Z,CHANNEL, and TIME axes!" );
 			}
@@ -212,11 +212,15 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @param imgPlus2
 	 */
 	private void addImagePerChannel( final RandomAccessibleInterval< T > imgPlus, final int dC ) {
+		final List< RandomAccessibleInterval< T > > newimages =
+				new ArrayList< RandomAccessibleInterval< T > >();
+
 		for ( int channel = 0; channel < imgPlus.dimension( dC ); channel++ ) {
 			final RandomAccessibleInterval< T > rai =
 					Views.hyperSlice( imgPlus, dC, channel );
-			images.add( rai );
+			newimages.add( rai );
 		}
+		images = newimages;
 	}
 
 	/**
@@ -238,7 +242,10 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		final RandomAccessibleInterval< T > timePointToShow =
 				Views.hyperSlice( imgPlus, dT, t );
 		if ( dC == -1 ) {
-			images.add( timePointToShow );
+			final ArrayList< RandomAccessibleInterval< T > > newimage =
+					new ArrayList< RandomAccessibleInterval< T > >();
+			newimage.add( timePointToShow );
+			images = newimage;
 		} else {
 			addImagePerChannel( timePointToShow, dC );
 		}
@@ -519,7 +526,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			panelControlsHelper = new JPanel( new MigLayout() );
 			panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Time" ) );
 
-			lblTime = new JLabel( String.format( "t=%02d", ( t + 1 ) ) );
+			lblTime = new JLabel( String.format( "t=%02d", ( timeIndexToShow + 1 ) ) );
 			lblFps = new JLabel( "fps:" );
 
 			txtFps = new JTextField( 2 );
@@ -690,7 +697,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			cvManager.toggleRecording();
 		} else if ( e.getSource().equals( cbRenormalizeFrames ) ) {
 			bDoRenormalize = cbRenormalizeFrames.isSelected();
-			extractChannelsAtT( t );
+			extractChannelsAtT( timeIndexToShow );
 			showExtractedChannels();
 		}  else if ( e.getSource().equals( txtFps ) ) {
 			try{
@@ -720,36 +727,12 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	@Override
 	public void stateChanged( final ChangeEvent e ) {
 		if ( e.getSource().equals( sliderTime ) ) {
-			t = sliderTime.getValue();
-			lblTime.setText( String.format( "t=%02d", ( t + 1 ) ) );
+			timeIndexToShow = sliderTime.getValue();
+			lblTime.setText( String.format( "t=%02d", ( timeIndexToShow + 1 ) ) );
 
-			extractChannelsAtT( t );
+			extractChannelsAtT( timeIndexToShow );
 			showExtractedChannels();
 		}
-	}
-
-	/**
-	 * @param t
-	 */
-	public void extractChannelsAtT( final int t ) {
-		final List< RandomAccessibleInterval< T >> newimages =
-				new ArrayList< RandomAccessibleInterval< T >>();
-
-		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
-		final int dT = imgPlus.dimensionIndex( Axes.TIME );
-
-		final RandomAccessibleInterval< T > timePointToShow =
-				Views.hyperSlice( imgPlus, dT, t );
-		imgPlus.getColorTable( dC );
-		if ( dC == -1 ) {
-			newimages.add( timePointToShow );
-		} else
-			for ( int channel = 0; channel < timePointToShow.dimension( dC ); channel++ ) {
-			final RandomAccessibleInterval< T > rai =
-					Views.hyperSlice( timePointToShow, dC, channel );
-			newimages.add( rai );
-		}
-		images = newimages;
 	}
 
 	/**

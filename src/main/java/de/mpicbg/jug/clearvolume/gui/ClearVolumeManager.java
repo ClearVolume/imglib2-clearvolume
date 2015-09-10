@@ -23,6 +23,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 	private ClearVolumeRendererInterface cv;
 	private List< RandomAccessibleInterval< T >> images;
+	private List< ColorTable > luts;
 	private final int numChannels;
 
 	private int activeChannelIndex;
@@ -53,6 +54,8 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 			final int maxTextureHeight,
 			final boolean useCuda ) {
 
+		this.luts = luts;
+
 		this.maxTextureWidth = maxTextureWidth;
 		this.maxTextureHeight = maxTextureHeight;
 
@@ -67,16 +70,13 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 		this.numChannels = imagesToShow.size();
 
 		this.images = null;
-		setImages( imagesToShow, luts );
+		setImages( imagesToShow );
 	}
 
 	/**
 	 * @param imagesToShow
-	 * @param luts
 	 */
-	private void setImages(
-			final List< RandomAccessibleInterval< T > > imagesToShow,
-			final List< ColorTable > luts ) {
+	private void setImages( final List< RandomAccessibleInterval< T > > imagesToShow ) {
 		this.images = imagesToShow;
 
 		this.minIntensities = new double[ numChannels ];
@@ -87,13 +87,6 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 			ComputeMinMax.computeMinMax( images.get( i ), min, max );
 			minIntensities[ i ] = min.getRealDouble();
 			maxIntensities[ i ] = max.getRealDouble();
-
-			if ( luts != null && luts.size() > i ) {
-				final ColorTable lut = luts.get( i );
-				cv.setTransferFunction(
-						i,
-						ImgLib2ClearVolume.getTransferFunctionFor( lut ) );
-			}
 		}
 	}
 
@@ -165,7 +158,10 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 
 	@Override
 	public void run() {
-		cv = ImgLib2ClearVolume.initRealImgs( images, "Generic ClearVolume GUI",
+		cv = ImgLib2ClearVolume.initRealImgs(
+				images,
+				luts,
+				"Generic ClearVolume GUI",
 				maxTextureWidth, maxTextureHeight,
 				maxTextureWidth, maxTextureHeight,
 				true,

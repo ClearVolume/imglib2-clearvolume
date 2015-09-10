@@ -5,7 +5,8 @@ import java.io.IOException;
 
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
-import net.imagej.display.DataView;
+import net.imagej.display.DatasetView;
+import net.imagej.display.ImageDisplay;
 
 
 /**
@@ -21,8 +22,8 @@ public class testImageJPlugin {
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XY.tif";		// OK
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYC.tif";	// OK
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYZ.tif";	// OK
-//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZ.tif";	// OK
-		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZT.tif";
+		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZ.tif";	// OK
+//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZT.tif";
 
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/droso.tif";
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic.tif";
@@ -43,11 +44,13 @@ public class testImageJPlugin {
 		final ImageJ ij = new ImageJ();
 		try {
 			Dataset ds = null;
-			DataView dv = null;
+			DatasetView dsv = null;
 			if ( file.exists() && file.canRead() ) {
 				ds = ij.scifio().datasetIO().open( fname );
-				dv = ij.imageDisplay().createDataView( ds );
-				ij.ui().show( ds );
+//				dsv = ( DatasetView ) ij.imageDisplay().createDataView( ds );
+//				dsv.rebuild();
+				final ImageDisplay display = ( ImageDisplay ) ij.display().createDisplay( ds );
+				dsv = ij.imageDisplay().getActiveDatasetView( display );
 			}
 
 			ij.ui().showUI();
@@ -57,7 +60,7 @@ public class testImageJPlugin {
 						de.mpicbg.jug.plugins.ClearVolumePlugin.class,
 						true,
 						"datasetView",
-						dv );
+						dsv );
 			}
 		} catch ( final IOException e ) {
 			e.printStackTrace();

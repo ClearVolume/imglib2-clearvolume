@@ -22,8 +22,8 @@ import org.scijava.plugin.Plugin;
 import clearvolume.utils.AppleMac;
 import de.mpicbg.jug.clearvolume.gui.ClearVolumeSplashFrame;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
-import net.imagej.Dataset;
 import net.imagej.ImgPlus;
+import net.imagej.display.DatasetView;
 import net.imglib2.display.ColorTable;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -37,7 +37,7 @@ import net.imglib2.type.numeric.RealType;
 public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> implements Command {
 
 	@Parameter( label = "3D ImgPlus to be shown." )
-//	private DatasetView datasetView;
+	private DatasetView datasetView;
 	private ImgPlus< T > imgPlus;
 
 	private final int windowWidth = 1200;
@@ -59,8 +59,8 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	@Override
 	public void run() {
 
-//		imgPlus = ( ImgPlus< T > ) datasetView.getData().getImgPlus();
-		final List< ColorTable > luts = null;//imgPlus.getColorTable( no );
+		imgPlus = ( ImgPlus< T > ) datasetView.getData().getImgPlus();
+		final List< ColorTable > luts = datasetView.getColorTables();
 
 		final boolean isShowable = checkIfShowable( frame, imgPlus, true );
 		useCuda = !( !useCuda );// to avoid eclipse making this field 'final' -- stupid!
@@ -109,7 +109,7 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 		String message = "";
 
 		if ( imgPlus == null ) {
-			message = "ClearVolume can not be initialized with a null image!";
+			message = "ClearVolume cannot be initialized with a null image!";
 			ret = false;
 		} else if ( imgPlus.numDimensions() < 2 || imgPlus.numDimensions() > 5 ) {
 			message =
