@@ -30,6 +30,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.apple.eawt.Application;
+import com.jogamp.newt.awt.NewtCanvasAWT;
+
+import clearvolume.renderer.ControlJPanel;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
@@ -37,10 +41,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
-import clearvolume.renderer.ControlJPanel;
-
-import com.apple.eawt.Application;
-import com.jogamp.newt.awt.NewtCanvasAWT;
 
 
 /**
@@ -139,25 +139,85 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
 		if ( imgPlus == null ) return;
 
+		final int dX = imgPlus.dimensionIndex( Axes.X );
+		final int dY = imgPlus.dimensionIndex( Axes.Y );
+		final int dZ = imgPlus.dimensionIndex( Axes.Z );
 		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
 		final int dT = imgPlus.dimensionIndex( Axes.TIME );
 
-		if ( imgPlus.numDimensions() == 3 ) {
-			images.add( imgPlus );
-		} else if ( imgPlus.numDimensions() == 4 ) {
-			if ( dC == -1 ) {
-				if ( dT == -1 ) { throw new IllegalArgumentException( "Four dimensional input image without CHANNEL axis must contain a TIME axis! Neither of both found..." ); }
-				t = 0;
-				extractChannelsAtT( t );
+		if ( imgPlus.numDimensions() == 2 ) {
+			if ( dX >= 0 && dY >= 0 ) {
+				images.add( imgPlus );
+			} else {
+				throw new IllegalArgumentException( "2 dimensional input image must have X and Y axes." );
+			}
+		} else if ( imgPlus.numDimensions() == 3 ) {
+			if ( dX>=0 && dY>=0 && dZ>=0 ) {
+				images.add( imgPlus );
 			} else
-				for ( int channel = 0; channel < imgPlus.dimension( dC ); channel++ ) {
-				final RandomAccessibleInterval< T > rai = Views.hyperSlice( imgPlus, 2, channel );
-				images.add( rai );
+			if ( dX >= 0 && dY >= 0 && dC >= 0 ) {
+				addImagePerChannel( imgPlus, dC );
+			} else
+			if ( dX >= 0 && dY >= 0 && dT >= 0 ) {
+				extractChannelsAtT( t, dC, dT );
+			} else {
+				throw new IllegalArgumentException( "3 dimensional input image must have X and Y axes plus either Z, CHANNEL, or TIME." );
+			}
+		} else if ( imgPlus.numDimensions() == 4 ) {
+			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT < 0 ) {
+				addImagePerChannel( imgPlus, dC );
+			} else
+			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC < 0 && dT >= 0 ) {
+				t = 0;
+				extractChannelsAtT( t, dC, dT );
+			} else {
+				throw new IllegalArgumentException( "4 dimensional input image must have X, Y and Z axes plus either CHANNEL, or TIME." );
 			}
 		} else if ( imgPlus.numDimensions() == 5 ) {
-			if ( dT == -1 ) { throw new IllegalArgumentException( "Five dimensional input image must contain a TIME axis!" ); }
-			t = 0;
-			extractChannelsAtT( t );
+			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT >= 0 ) {
+				t = 0;
+				extractChannelsAtT( t, dC, dT );
+			} else {
+				throw new IllegalArgumentException( "Five dimensional input image must contain X,Y,Z,CHANNEL, and TIME axes!" );
+			}
+		} else {
+			throw new IllegalArgumentException( "Only 2 to 5 dimensional images are currently supported." );
+		}
+	}
+
+	/**
+	 * @param imgPlus2
+	 */
+	private void addImagePerChannel( final RandomAccessibleInterval< T > imgPlus, final int dC ) {
+		for ( int channel = 0; channel < imgPlus.dimension( dC ); channel++ ) {
+			final RandomAccessibleInterval< T > rai =
+					Views.hyperSlice( imgPlus, dC, channel );
+			images.add( rai );
+		}
+	}
+
+	/**
+	 * @param t
+	 */
+	public void extractChannelsAtT( final int t ) {
+		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
+		final int dT = imgPlus.dimensionIndex( Axes.TIME );
+		extractChannelsAtT( t, dC, dT );
+	}
+
+	/**
+	 *
+	 * @param t
+	 * @param dC
+	 * @param dT
+	 */
+	public void extractChannelsAtT( final int t, final int dC, final int dT ) {
+		final RandomAccessibleInterval< T > timePointToShow =
+				Views.hyperSlice( imgPlus, dT, t );
+		if ( dC == -1 ) {
+			images.add( timePointToShow );
+		} else {
+			addImagePerChannel( timePointToShow, dC );
 		}
 	}
 
@@ -643,29 +703,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			extractChannelsAtT( t );
 			showExtractedChannels();
 		}
-	}
-
-	/**
-	 * @param t
-	 */
-	public void extractChannelsAtT( final int t ) {
-		final List< RandomAccessibleInterval< T >> newimages =
-				new ArrayList< RandomAccessibleInterval< T >>();
-
-		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
-		final int dT = imgPlus.dimensionIndex( Axes.TIME );
-
-		final RandomAccessibleInterval< T > timePointToShow =
-				Views.hyperSlice( imgPlus, dT, t );
-		if ( dC == -1 ) {
-			newimages.add( timePointToShow );
-		} else
-			for ( int channel = 0; channel < timePointToShow.dimension( dC ); channel++ ) {
-			final RandomAccessibleInterval< T > rai =
-					Views.hyperSlice( timePointToShow, dC, channel );
-			newimages.add( rai );
-		}
-		images = newimages;
 	}
 
 	/**

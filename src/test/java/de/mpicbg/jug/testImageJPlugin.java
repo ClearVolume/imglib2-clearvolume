@@ -16,6 +16,12 @@ import net.imagej.ImageJ;
 public class testImageJPlugin {
 
 	public static void main( final String[] args ) {
+//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XY.tif";		// OK
+//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYC.tif";	// OK
+//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYZ.tif";	// OK
+//		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZ.tif";	// OK
+		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZT.tif";
+
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/droso.tif";
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic.tif";
 //		final String fname = "/Users/jug/Desktop/ClearVolumeDatasetSamples/synthetic_labels.tif";
@@ -25,8 +31,8 @@ public class testImageJPlugin {
 //				"/Users/jug/Desktop/ClearVolumeDatasetSamples/Flybrain_2ch_12_smallSize.tif";
 //		final String fname =
 //				"/Users/jug/Desktop/ClearVolumeDatasetSamples/mitosis4d.tif";
-		final String fname =
-				"/Users/jug/Desktop/ClearVolumeDatasetSamples/mitosis5d.tif";
+//		final String fname =
+//				"/Users/jug/Desktop/ClearVolumeDatasetSamples/mitosis5d.tif";
 //		final String fname =
 //				"/Users/jug/Desktop/ClearVolumeDatasetSamples/norden5d.tif";
 
