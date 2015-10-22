@@ -42,7 +42,7 @@ import clearvolume.renderer.panels.ControlJPanel;
 import com.apple.eawt.Application;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
-import de.mpicbg.jug.clearvolume.gui.rangeslider.RangeSlider;
+import de.mpicbg.jug.clearvolume.gui.rangeslider.ClipRangeSlider;
 
 /**
  * @author jug
@@ -124,7 +124,7 @@ public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extend
 	private JLabel lblFps;
 	private JTextField txtFps;
 	private int fps = 5;
-	private RangeSlider[] clipBoxSliders;
+	private ClipRangeSlider[] clipBoxSliders;
 
 	public GenericClearVolumeGui(final ImgPlus<T> imgPlus)
 	{
@@ -419,6 +419,16 @@ public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extend
 		txtVoxelSizeX.setText("" + cvManager.getVoxelSizeX());
 		txtVoxelSizeY.setText("" + cvManager.getVoxelSizeY());
 		txtVoxelSizeZ.setText("" + cvManager.getVoxelSizeZ());
+
+		final float[] clipbox = cvManager.getClipBox();
+
+		// System.out.println("pushing:");
+		// for (int j = 0; j < clipBoxSliders.length; j++)
+		// {
+		// clipBoxSliders[j].setValueLower(clipbox[2 * j]);
+		// clipBoxSliders[j].setValueUpper(clipbox[2 * j + 1]);
+		// }
+
 	}
 
 	/**
@@ -553,16 +563,20 @@ public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extend
 																															2));
 		panelControls.add(shrinkingHelper);
 
-		// create the 3 sliders that will affect the clipping box
-		clipBoxSliders = new RangeSlider[]
-		{ new RangeSlider(), new RangeSlider(), new RangeSlider() };
+		JPanel panelSliderHelper = new JPanel(new GridLayout(3, 2));
+		panelSliderHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																																5,
+																																2,
+																																2));
 
-		for (RangeSlider slide : clipBoxSliders)
+		// create the 3 sliders that will affect the clipping box
+		clipBoxSliders = new ClipRangeSlider[]
+		{ new ClipRangeSlider(),
+			new ClipRangeSlider(),
+			new ClipRangeSlider() };
+
+		for (ClipRangeSlider slide : clipBoxSliders)
 		{
-			slide.setMinimum(-100);
-			slide.setMaximum(100);
-			slide.setValue(-100);
-			slide.setUpperValue(100);
 			shrinkingHelper = new JPanel(new BorderLayout());
 			shrinkingHelper.add(slide, BorderLayout.SOUTH);
 			shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
@@ -571,6 +585,7 @@ public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extend
 																																2));
 			panelControls.add(shrinkingHelper);
 
+			System.out.println(slide.getValueUpper());
 			slide.addChangeListener(this);
 
 			slide.addChangeListener(new ChangeListener()
@@ -581,8 +596,8 @@ public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extend
 
 					for (int j = 0; j < clipBoxSliders.length; j++)
 					{
-						clipbox[2 * j] = (float) (clipBoxSliders[j].getValue() / 100.);
-						clipbox[2 * j + 1] = (float) (clipBoxSliders[j].getUpperValue() / 100.);
+						clipbox[2 * j] = (float) (clipBoxSliders[j].getValueLower());
+						clipbox[2 * j + 1] = (float) (clipBoxSliders[j].getValueUpper());
 					}
 
 					cvManager.setClipBox(clipbox);

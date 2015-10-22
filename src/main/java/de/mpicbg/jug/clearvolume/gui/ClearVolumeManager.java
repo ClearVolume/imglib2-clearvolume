@@ -408,11 +408,6 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	{
 		cv.setBrightness(channelId, brightness);
 
-		float w = (float) (brightness);
-
-		cv.setClipBox(new float[]
-		{ -w, w, -w, w, -w, w });
-
 		cv.requestDisplay();
 	}
 
@@ -455,5 +450,11 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	{
 		cv.setClipBox(clipbox);
 
+	}
+
+	public float[] getClipBox()
+	{
+
+		return cv.getClipBox();
 	}
 }
