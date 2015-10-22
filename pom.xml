@@ -40,17 +40,17 @@
 		<dependency>
  			<groupId>net.clearvolume</groupId>
  			<artifactId>clearvolume</artifactId>
-			<version>1.0.4</version>
+			<version>1.1.1</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
  	        <artifactId>cleargl</artifactId>
-	        <version>1.0.1</version>
+	        <version>1.0.3</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
  	        <artifactId>clearcuda</artifactId>
-	        <version>0.9.2</version>
+	        <version>0.9.4</version>
  		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
