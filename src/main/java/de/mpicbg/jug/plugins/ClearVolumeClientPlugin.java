@@ -48,21 +48,22 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 	 */
 	@Override
 	public void capturedVolume(
-			final ByteBuffer[] pCaptureBuffers,
+			final ByteBuffer pCaptureBuffer,
 			final NativeTypeEnum pNativeTypeEnum,
 			final long pVolumeWidth,
 			final long pVolumeHeight,
 			final long pVolumeDepth,
 			final double pVoxelWidth,
 			final double pVoxelHeight,
-			final double pVoxelDepth ) {
+			final double pVoxelDepth ) 
+	{
 		final Img< FloatType > img =
 				ImgLib2ClearVolume.makeImgFromBytes(
 						pVolumeWidth,
 						pVolumeHeight,
 						pVolumeDepth,
 						pNativeTypeEnum,
-						pCaptureBuffers );
+						new ByteBuffer[]{pCaptureBuffer} );
 		final ImagePlus imagePlus = ImageJFunctions.show( img );
 		final Calibration calibration = imagePlus.getCalibration();
 		calibration.pixelWidth = pVoxelWidth;
