@@ -129,6 +129,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 						minIntensities,
 						maxIntensities );
 
+		cv.setVolumeDataUpdateAllowed(false);
 		c = 0;
 		for ( final RandomAccessibleInterval< T > img : imagesToShow ) {
 			final int sizeX = ( int ) ( img.dimension( 0 ) );
@@ -147,6 +148,7 @@ public class ClearVolumeManager< T extends RealType< T > & NativeType< T >> impl
 					voxelSizeZ );
 			c++;
 		}
+		cv.setVolumeDataUpdateAllowed(true);
 
 		return true;
 	}
