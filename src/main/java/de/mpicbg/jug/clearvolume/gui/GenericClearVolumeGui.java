@@ -30,10 +30,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.apple.eawt.Application;
-import com.jogamp.newt.awt.NewtCanvasAWT;
-
-import clearvolume.renderer.panels.ControlJPanel;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
@@ -41,39 +37,53 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
+import clearvolume.renderer.panels.ControlJPanel;
 
+import com.apple.eawt.Application;
+import com.jogamp.newt.awt.NewtCanvasAWT;
+
+import de.mpicbg.jug.clearvolume.gui.rangeslider.RangeSlider;
 
 /**
  * @author jug
  */
-public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel
-		implements
-		ActionListener,
-		ActiveLayerListener,
-		ChangeListener {
+public class GenericClearVolumeGui<T extends RealType<T> & NativeType<T>> extends
+																																					JPanel implements
+																																								ActionListener,
+																																								ActiveLayerListener,
+																																								ChangeListener
+{
 
-	public class LoopThread extends Thread {
+	public class LoopThread extends Thread
+	{
 
 		boolean doit = true;
 
 		@Override
-		public void run() {
-			while ( doit ) {
-				try {
-					if ( fps == 0 )
-						Thread.sleep( 5000 );
+		public void run()
+		{
+			while (doit)
+			{
+				try
+				{
+					if (fps == 0)
+						Thread.sleep(5000);
 					else
-						Thread.sleep( 1000 / fps );
+						Thread.sleep(1000 / fps);
 					t++;
-					if ( t > sliderTime.getMaximum() ) t = 0;
-					sliderTime.setValue( t );
-				} catch ( final InterruptedException e ) {
+					if (t > sliderTime.getMaximum())
+						t = 0;
+					sliderTime.setValue(t);
+				}
+				catch (final InterruptedException e)
+				{
 					e.printStackTrace();
 				}
 			}
 		}
 
-		public void endLooping() {
+		public void endLooping()
+		{
 			doit = false;
 		}
 
@@ -99,110 +109,143 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private boolean bDoRenormalize;
 	private JCheckBox cbRenormalizeFrames;
 
-
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
-	private List< ChannelWidget > channelWidgets;
+	private List<ChannelWidget> channelWidgets;
 	ControlJPanel panelClearVolumeControl;
 
 	private int maxTextureResolution;
 	private boolean useCuda;
 
-	private ImgPlus< T > imgPlus;
-	private List< RandomAccessibleInterval< T >> images;
-	private ClearVolumeManager< T > cvManager;
+	private ImgPlus<T> imgPlus;
+	private List<RandomAccessibleInterval<T>> images;
+	private ClearVolumeManager<T> cvManager;
 	private LoopThread threadLoopTime;
 	private JLabel lblFps;
 	private JTextField txtFps;
 	private int fps = 5;
+	private RangeSlider[] clipBoxSliders;
 
-	public GenericClearVolumeGui( final ImgPlus< T > imgPlus ) {
-		this( imgPlus, 768, true );
+	public GenericClearVolumeGui(final ImgPlus<T> imgPlus)
+	{
+		this(imgPlus, 768, true);
 	}
 
-	public GenericClearVolumeGui(
-			final ImgPlus< T > imgPlus,
-			final int textureResolution,
-			final boolean useCuda ) {
-		super( true );
+	public GenericClearVolumeGui(	final ImgPlus<T> imgPlus,
+																final int textureResolution,
+																final boolean useCuda)
+	{
+		super(true);
 
 		this.imgPlus = imgPlus;
-		images = new ArrayList< RandomAccessibleInterval< T >>();
-		setTextureSizeAndCudaFlag( textureResolution, useCuda );
+		images = new ArrayList<RandomAccessibleInterval<T>>();
+		setTextureSizeAndCudaFlag(textureResolution, useCuda);
 
-		if ( imgPlus != null ) {
-			setImagesFromImgPlus( imgPlus );
+		if (imgPlus != null)
+		{
+			setImagesFromImgPlus(imgPlus);
 			launchClearVolumeManager();
 		}
 	}
 
-	private void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
-		if ( imgPlus == null ) return;
+	private void setImagesFromImgPlus(final ImgPlus<T> imgPlus)
+	{
+		if (imgPlus == null)
+			return;
 
-		final int dX = imgPlus.dimensionIndex( Axes.X );
-		final int dY = imgPlus.dimensionIndex( Axes.Y );
-		final int dZ = imgPlus.dimensionIndex( Axes.Z );
-		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
-		final int dT = imgPlus.dimensionIndex( Axes.TIME );
+		final int dX = imgPlus.dimensionIndex(Axes.X);
+		final int dY = imgPlus.dimensionIndex(Axes.Y);
+		final int dZ = imgPlus.dimensionIndex(Axes.Z);
+		final int dC = imgPlus.dimensionIndex(Axes.CHANNEL);
+		final int dT = imgPlus.dimensionIndex(Axes.TIME);
 
-		if ( imgPlus.numDimensions() == 2 ) {
-			if ( dX >= 0 && dY >= 0 ) {
-				images.add( imgPlus );
-			} else {
-				throw new IllegalArgumentException( "2 dimensional input image must have X and Y axes." );
+		if (imgPlus.numDimensions() == 2)
+		{
+			if (dX >= 0 && dY >= 0)
+			{
+				images.add(imgPlus);
 			}
-		} else if ( imgPlus.numDimensions() == 3 ) {
-			if ( dX>=0 && dY>=0 && dZ>=0 ) {
-				images.add( imgPlus );
-			} else
-			if ( dX >= 0 && dY >= 0 && dC >= 0 ) {
-				addImagePerChannel( imgPlus, dC );
-			} else
-			if ( dX >= 0 && dY >= 0 && dT >= 0 ) {
-				extractChannelsAtT( t, dC, dT );
-			} else {
-				throw new IllegalArgumentException( "3 dimensional input image must have X and Y axes plus either Z, CHANNEL, or TIME." );
+			else
+			{
+				throw new IllegalArgumentException("2 dimensional input image must have X and Y axes.");
 			}
-		} else if ( imgPlus.numDimensions() == 4 ) {
-			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT < 0 ) {
-				addImagePerChannel( imgPlus, dC );
-			} else
-			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC < 0 && dT >= 0 ) {
+		}
+		else if (imgPlus.numDimensions() == 3)
+		{
+			if (dX >= 0 && dY >= 0 && dZ >= 0)
+			{
+				images.add(imgPlus);
+			}
+			else if (dX >= 0 && dY >= 0 && dC >= 0)
+			{
+				addImagePerChannel(imgPlus, dC);
+			}
+			else if (dX >= 0 && dY >= 0 && dT >= 0)
+			{
+				extractChannelsAtT(t, dC, dT);
+			}
+			else
+			{
+				throw new IllegalArgumentException("3 dimensional input image must have X and Y axes plus either Z, CHANNEL, or TIME.");
+			}
+		}
+		else if (imgPlus.numDimensions() == 4)
+		{
+			if (dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT < 0)
+			{
+				addImagePerChannel(imgPlus, dC);
+			}
+			else if (dX >= 0 && dY >= 0 && dZ >= 0 && dC < 0 && dT >= 0)
+			{
 				t = 0;
-				extractChannelsAtT( t, dC, dT );
-			} else {
-				throw new IllegalArgumentException( "4 dimensional input image must have X, Y and Z axes plus either CHANNEL, or TIME." );
+				extractChannelsAtT(t, dC, dT);
 			}
-		} else if ( imgPlus.numDimensions() == 5 ) {
-			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT >= 0 ) {
+			else
+			{
+				throw new IllegalArgumentException("4 dimensional input image must have X, Y and Z axes plus either CHANNEL, or TIME.");
+			}
+		}
+		else if (imgPlus.numDimensions() == 5)
+		{
+			if (dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT >= 0)
+			{
 				t = 0;
-				extractChannelsAtT( t, dC, dT );
-			} else {
-				throw new IllegalArgumentException( "Five dimensional input image must contain X,Y,Z,CHANNEL, and TIME axes!" );
+				extractChannelsAtT(t, dC, dT);
 			}
-		} else {
-			throw new IllegalArgumentException( "Only 2 to 5 dimensional images are currently supported." );
+			else
+			{
+				throw new IllegalArgumentException("Five dimensional input image must contain X,Y,Z,CHANNEL, and TIME axes!");
+			}
+		}
+		else
+		{
+			throw new IllegalArgumentException("Only 2 to 5 dimensional images are currently supported.");
 		}
 	}
 
 	/**
 	 * @param imgPlus2
 	 */
-	private void addImagePerChannel( final RandomAccessibleInterval< T > imgPlus, final int dC ) {
-		for ( int channel = 0; channel < imgPlus.dimension( dC ); channel++ ) {
-			final RandomAccessibleInterval< T > rai =
-					Views.hyperSlice( imgPlus, dC, channel );
-			images.add( rai );
+	private void addImagePerChannel(final RandomAccessibleInterval<T> imgPlus,
+																	final int dC)
+	{
+		for (int channel = 0; channel < imgPlus.dimension(dC); channel++)
+		{
+			final RandomAccessibleInterval<T> rai = Views.hyperSlice(	imgPlus,
+																																dC,
+																																channel);
+			images.add(rai);
 		}
 	}
 
 	/**
 	 * @param t
 	 */
-	public void extractChannelsAtT( final int t ) {
-		final int dC = imgPlus.dimensionIndex( Axes.CHANNEL );
-		final int dT = imgPlus.dimensionIndex( Axes.TIME );
-		extractChannelsAtT( t, dC, dT );
+	public void extractChannelsAtT(final int t)
+	{
+		final int dC = imgPlus.dimensionIndex(Axes.CHANNEL);
+		final int dT = imgPlus.dimensionIndex(Axes.TIME);
+		extractChannelsAtT(t, dC, dT);
 	}
 
 	/**
@@ -211,75 +254,97 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @param dC
 	 * @param dT
 	 */
-	public void extractChannelsAtT( final int t, final int dC, final int dT ) {
-		final RandomAccessibleInterval< T > timePointToShow =
-				Views.hyperSlice( imgPlus, dT, t );
-		if ( dC == -1 ) {
-			images.add( timePointToShow );
-		} else {
-			addImagePerChannel( timePointToShow, dC );
+	public void extractChannelsAtT(	final int t,
+																	final int dC,
+																	final int dT)
+	{
+		final RandomAccessibleInterval<T> timePointToShow = Views.hyperSlice(	imgPlus,
+																																					dT,
+																																					t);
+		if (dC == -1)
+		{
+			images.add(timePointToShow);
+		}
+		else
+		{
+			addImagePerChannel(timePointToShow, dC);
 		}
 	}
 
-	public void launchClearVolumeManager() {
+	public void launchClearVolumeManager()
+	{
 		// if cvManager is set from previous session - free everything!
-		if ( cvManager != null ) {
+		if (cvManager != null)
+		{
 			cvManager.close();
 			this.closeOldSession();
 		}
 
 		// instantiate a NEW ClearVolumeManager
-		try {
-			final GenericClearVolumeGui< T > self = this;
-			final Runnable todo = new Runnable() {
+		try
+		{
+			final GenericClearVolumeGui<T> self = this;
+			final Runnable todo = new Runnable()
+			{
 
 				@Override
-				public void run() {
-					cvManager =
-							new ClearVolumeManager< T >( images, maxTextureResolution, maxTextureResolution, useCuda );
-					cvManager.addActiveLayerChangedListener( self );
+				public void run()
+				{
+					cvManager = new ClearVolumeManager<T>(images,
+																								maxTextureResolution,
+																								maxTextureResolution,
+																								useCuda);
+					cvManager.addActiveLayerChangedListener(self);
 				}
 			};
 
-			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+			if (javax.swing.SwingUtilities.isEventDispatchThread())
+			{
 				todo.run();
-			} else {
-				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( final Exception e ) {
-			System.err.println( "Launching CV session was interrupted in GenericClearVolumeGui!" );
+			else
+			{
+				SwingUtilities.invokeAndWait(todo);
+			}
+		}
+		catch (final Exception e)
+		{
+			System.err.println("Launching CV session was interrupted in GenericClearVolumeGui!");
 			e.printStackTrace();
 		}
 
-		final int dX = imgPlus.dimensionIndex( Axes.X );
-		final int dY = imgPlus.dimensionIndex( Axes.Y );
-		final int dZ = imgPlus.dimensionIndex( Axes.Z );
-		if ( dX != -1 && dY != -1 && dZ != -1 ) {
-			cvManager.setVoxelSize(
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.X ) ),
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Y ) ),
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Z ) ) );
-		} else if ( imgPlus.numDimensions() >= 3 ) {
-			cvManager.setVoxelSize(
-					imgPlus.averageScale( 0 ),
-					imgPlus.averageScale( 1 ),
-					imgPlus.averageScale( 2 ) );
+		final int dX = imgPlus.dimensionIndex(Axes.X);
+		final int dY = imgPlus.dimensionIndex(Axes.Y);
+		final int dZ = imgPlus.dimensionIndex(Axes.Z);
+		if (dX != -1 && dY != -1 && dZ != -1)
+		{
+			cvManager.setVoxelSize(	imgPlus.averageScale(imgPlus.dimensionIndex(Axes.X)),
+															imgPlus.averageScale(imgPlus.dimensionIndex(Axes.Y)),
+															imgPlus.averageScale(imgPlus.dimensionIndex(Axes.Z)));
+		}
+		else if (imgPlus.numDimensions() >= 3)
+		{
+			cvManager.setVoxelSize(	imgPlus.averageScale(0),
+															imgPlus.averageScale(1),
+															imgPlus.averageScale(2));
 		}
 		cvManager.run();
 
 		// Create necessary channel widgets!
-		this.channelWidgets = new ArrayList< ChannelWidget >();
-		for ( int i = 0; i < images.size(); i++ ) {
-			channelWidgets.add( new ChannelWidget( cvManager, i ) );
+		this.channelWidgets = new ArrayList<ChannelWidget>();
+		for (int i = 0; i < images.size(); i++)
+		{
+			channelWidgets.add(new ChannelWidget(cvManager, i));
 		}
 
 		buildGui();
 	}
 
-	public void relaunchClearVolumeManager( final ClearVolumeManager< T > oldManager ) {
+	public void relaunchClearVolumeManager(final ClearVolumeManager<T> oldManager)
+	{
 		final double[] oldMinI = oldManager.getMinIntensities();
 		final double[] oldMaxI = oldManager.getMaxIntensities();
-		final List< RandomAccessibleInterval< T >> oldImages = oldManager.getChannelImages();
+		final List<RandomAccessibleInterval<T>> oldImages = oldManager.getChannelImages();
 		final double oldVoxelSizeX = oldManager.getVoxelSizeX();
 		final double oldVoxelSizeY = oldManager.getVoxelSizeY();
 		final double oldVoxelSizeZ = oldManager.getVoxelSizeZ();
@@ -288,289 +353,407 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		this.closeOldSession();
 
 		// instantiate a NEW ClearVolumeManager using the old images and params
-		try {
-			final GenericClearVolumeGui< T > self = this;
-			final Runnable todo = new Runnable() {
+		try
+		{
+			final GenericClearVolumeGui<T> self = this;
+			final Runnable todo = new Runnable()
+			{
 
 				@Override
-				public void run() {
-					cvManager =
-							new ClearVolumeManager< T >( oldImages, maxTextureResolution, maxTextureResolution, useCuda );
-					cvManager.addActiveLayerChangedListener( self );
+				public void run()
+				{
+					cvManager = new ClearVolumeManager<T>(oldImages,
+																								maxTextureResolution,
+																								maxTextureResolution,
+																								useCuda);
+					cvManager.addActiveLayerChangedListener(self);
 				}
 			};
 
-			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+			if (javax.swing.SwingUtilities.isEventDispatchThread())
+			{
 				todo.run();
-			} else {
-				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( final Exception e ) {
-			System.err.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
+			else
+			{
+				SwingUtilities.invokeAndWait(todo);
+			}
+		}
+		catch (final Exception e)
+		{
+			System.err.println("Relaunching CV session was interrupted in GenericClearVolumeGui!");
 		}
 
-		cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
-		for ( int i = 0; i < oldImages.size(); i++ ) {
-			cvManager.setIntensityValues( i, oldMinI[ i ], oldMaxI[ i ] );
+		cvManager.setVoxelSize(	oldVoxelSizeX,
+														oldVoxelSizeY,
+														oldVoxelSizeZ);
+		for (int i = 0; i < oldImages.size(); i++)
+		{
+			cvManager.setIntensityValues(i, oldMinI[i], oldMaxI[i]);
 		}
 
 		cvManager.run();
 		buildGui();
 	}
 
-	private void setTextureSizeAndCudaFlag( final int textureRes, final boolean useCuda ) {
+	private void setTextureSizeAndCudaFlag(	final int textureRes,
+																					final boolean useCuda)
+	{
 		this.maxTextureResolution = textureRes;
 		this.useCuda = useCuda;
 
-		if ( cvManager != null ) {
-			cvManager.setTextureSize( textureRes, textureRes );
-			cvManager.setCuda( true );
+		if (cvManager != null)
+		{
+			cvManager.setTextureSize(textureRes, textureRes);
+			cvManager.setCuda(true);
 		}
 	}
 
-	public ClearVolumeManager< T > getClearVolumeManager() {
+	public ClearVolumeManager<T> getClearVolumeManager()
+	{
 		return cvManager;
 	}
 
-	public void pushParamsToGui() {
-		txtVoxelSizeX.setText( "" + cvManager.getVoxelSizeX() );
-		txtVoxelSizeY.setText( "" + cvManager.getVoxelSizeY() );
-		txtVoxelSizeZ.setText( "" + cvManager.getVoxelSizeZ() );
+	public void pushParamsToGui()
+	{
+		txtVoxelSizeX.setText("" + cvManager.getVoxelSizeX());
+		txtVoxelSizeY.setText("" + cvManager.getVoxelSizeY());
+		txtVoxelSizeZ.setText("" + cvManager.getVoxelSizeZ());
 	}
 
 	/**
 	 * Read all validly entered text field values and activate them.
 	 */
-	private void activateGuiValues() {
+	private void activateGuiValues()
+	{
 		final int i;
 		double d;
 
-		try {
-			d = Double.parseDouble( txtVoxelSizeX.getText() );
-		} catch ( final NumberFormatException e ) {
+		try
+		{
+			d = Double.parseDouble(txtVoxelSizeX.getText());
+		}
+		catch (final NumberFormatException e)
+		{
 			d = cvManager.getVoxelSizeX();
 		}
 		final double voxelSizeX = d;
 
-		try {
-			d = Double.parseDouble( txtVoxelSizeY.getText() );
-		} catch ( final NumberFormatException e ) {
+		try
+		{
+			d = Double.parseDouble(txtVoxelSizeY.getText());
+		}
+		catch (final NumberFormatException e)
+		{
 			d = cvManager.getVoxelSizeY();
 		}
 		final double voxelSizeY = d;
 
-		try {
-			d = Double.parseDouble( txtVoxelSizeZ.getText() );
-		} catch ( final NumberFormatException e ) {
+		try
+		{
+			d = Double.parseDouble(txtVoxelSizeZ.getText());
+		}
+		catch (final NumberFormatException e)
+		{
 			d = cvManager.getVoxelSizeZ();
 		}
 		final double voxelSizeZ = d;
 
-		cvManager.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
+		cvManager.setVoxelSize(voxelSizeX, voxelSizeY, voxelSizeZ);
+
 	}
 
-	private void buildGui() {
-//		this.setIgnoreRepaint( true );
-		this.setVisible( false );
+	private void buildGui()
+	{
+		// this.setIgnoreRepaint( true );
+		this.setVisible(false);
 		this.removeAll();
 
-		this.setLayout( new BorderLayout() );
+		this.setLayout(new BorderLayout());
 
 		ctnrClearVolume = new Container();
-		ctnrClearVolume.setLayout( new BorderLayout() );
+		ctnrClearVolume.setLayout(new BorderLayout());
 
-		if ( cvManager != null ) {
-			newtClearVolumeCanvas = cvManager.getClearVolumeRendererInterface().getNewtCanvasAWT();
-			ctnrClearVolume.add( newtClearVolumeCanvas, BorderLayout.CENTER );
+		if (cvManager != null)
+		{
+			newtClearVolumeCanvas = cvManager.getClearVolumeRendererInterface()
+																				.getNewtCanvasAWT();
+			ctnrClearVolume.add(newtClearVolumeCanvas, BorderLayout.CENTER);
 
-			panelClearVolumeControl =
-					new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
-			panelClearVolumeControl.setClearVolumeRendererInterface( cvManager.getClearVolumeRendererInterface() );
-		} else {
-			System.err.println( "ClearVolumeTableCellView: Did you intend this? You called buildGui while cvManager==null!" );
+			panelClearVolumeControl = new ControlJPanel(cvManager.getActiveChannelIndex(),
+																									cvManager.getClearVolumeRendererInterface());
+			panelClearVolumeControl.setClearVolumeRendererInterface(cvManager.getClearVolumeRendererInterface());
+		}
+		else
+		{
+			System.err.println("ClearVolumeTableCellView: Did you intend this? You called buildGui while cvManager==null!");
 		}
 
 		// Main controls panel
 		// -------------------
 		panelControls = new JPanel();
-		panelControls.setLayout( new BoxLayout( panelControls, BoxLayout.Y_AXIS ) );
-		panelControls.add( Box.createVerticalGlue() );
+		panelControls.setLayout(new BoxLayout(panelControls,
+																					BoxLayout.Y_AXIS));
+		panelControls.add(Box.createVerticalGlue());
 
 		// Credits baby!!!
-		buttonCredits = new JButton( "Help + how to cite us!" );
-		buttonCredits.setForeground( Color.darkGray );
-		buttonCredits.addActionListener( this );
+		buttonCredits = new JButton("Help + how to cite us!");
+		buttonCredits.setForeground(Color.darkGray);
+		buttonCredits.addActionListener(this);
 
-		final JPanel panelCreditsHelper = new JPanel( new GridLayout( 1, 1 ) );
-		panelCreditsHelper.setBorder( BorderFactory.createEmptyBorder( 5, 5, 2, 2 ) );
+		final JPanel panelCreditsHelper = new JPanel(new GridLayout(1, 1));
+		panelCreditsHelper.setBorder(BorderFactory.createEmptyBorder(	5,
+																																	5,
+																																	2,
+																																	2));
 
-		panelCreditsHelper.add( buttonCredits );
+		panelCreditsHelper.add(buttonCredits);
 
-		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( panelCreditsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
+		JPanel shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(panelCreditsHelper, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															2,
+																															2));
+		panelControls.add(shrinkingHelper);
 
 		// Parameters that require a view update
 		// -------------------------------------
-		JPanel panelControlsHelper = new JPanel( new GridLayout( 3, 2 ) );
-		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		JPanel panelControlsHelper = new JPanel(new GridLayout(3, 2));
+		panelControlsHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																																	5,
+																																	2,
+																																	2));
 
-		final JLabel lblVoxelSizeX = new JLabel( "VoxelDimension.X" );
-		txtVoxelSizeX = new JTextField( 8 );
-		txtVoxelSizeX.setActionCommand( "UpdateView" );
-		txtVoxelSizeX.addActionListener( this );
-		final JLabel lblVoxelSizeY = new JLabel( "VoxelDimension.Y" );
-		txtVoxelSizeY = new JTextField( 8 );
-		txtVoxelSizeY.setActionCommand( "UpdateView" );
-		txtVoxelSizeY.addActionListener( this );
-		final JLabel lblVoxelSizeZ = new JLabel( "VoxelDimension.Z" );
-		txtVoxelSizeZ = new JTextField( 8 );
-		txtVoxelSizeZ.setActionCommand( "UpdateView" );
-		txtVoxelSizeZ.addActionListener( this );
+		final JLabel lblVoxelSizeX = new JLabel("VoxelDimension.X");
+		txtVoxelSizeX = new JTextField(8);
+		txtVoxelSizeX.setActionCommand("UpdateView");
+		txtVoxelSizeX.addActionListener(this);
+		final JLabel lblVoxelSizeY = new JLabel("VoxelDimension.Y");
+		txtVoxelSizeY = new JTextField(8);
+		txtVoxelSizeY.setActionCommand("UpdateView");
+		txtVoxelSizeY.addActionListener(this);
+		final JLabel lblVoxelSizeZ = new JLabel("VoxelDimension.Z");
+		txtVoxelSizeZ = new JTextField(8);
+		txtVoxelSizeZ.setActionCommand("UpdateView");
+		txtVoxelSizeZ.addActionListener(this);
 
-		panelControlsHelper.add( lblVoxelSizeX );
-		panelControlsHelper.add( txtVoxelSizeX );
-		panelControlsHelper.add( lblVoxelSizeY );
-		panelControlsHelper.add( txtVoxelSizeY );
-		panelControlsHelper.add( lblVoxelSizeZ );
-		panelControlsHelper.add( txtVoxelSizeZ );
+		panelControlsHelper.add(lblVoxelSizeX);
+		panelControlsHelper.add(txtVoxelSizeX);
+		panelControlsHelper.add(lblVoxelSizeY);
+		panelControlsHelper.add(txtVoxelSizeY);
+		panelControlsHelper.add(lblVoxelSizeZ);
+		panelControlsHelper.add(txtVoxelSizeZ);
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(panelControlsHelper, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															2,
+																															2));
+		panelControls.add(shrinkingHelper);
 
-		buttonUpdateView = new JButton( "Set" );
-		buttonUpdateView.addActionListener( this );
+		// create the 3 sliders that will affect the clipping box
+		clipBoxSliders = new RangeSlider[]
+		{ new RangeSlider(), new RangeSlider(), new RangeSlider() };
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( buttonUpdateView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
+		for (RangeSlider slide : clipBoxSliders)
+		{
+			slide.setMinimum(-100);
+			slide.setMaximum(100);
+			slide.setValue(-100);
+			slide.setUpperValue(100);
+			shrinkingHelper = new JPanel(new BorderLayout());
+			shrinkingHelper.add(slide, BorderLayout.SOUTH);
+			shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																																5,
+																																2,
+																																2));
+			panelControls.add(shrinkingHelper);
 
-		buttonResetView = new JButton( "Reset" );
-		buttonResetView.addActionListener( this );
+			slide.addChangeListener(this);
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( buttonResetView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
-		panelControls.add( shrinkingHelper );
+			slide.addChangeListener(new ChangeListener()
+			{
+				public void stateChanged(ChangeEvent e)
+				{
+					float[] clipbox = new float[6];
+
+					for (int j = 0; j < clipBoxSliders.length; j++)
+					{
+						clipbox[2 * j] = (float) (clipBoxSliders[j].getValue() / 100.);
+						clipbox[2 * j + 1] = (float) (clipBoxSliders[j].getUpperValue() / 100.);
+					}
+
+					cvManager.setClipBox(clipbox);
+
+				}
+			});
+		}
+
+		buttonUpdateView = new JButton("Set");
+		buttonUpdateView.addActionListener(this);
+
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(buttonUpdateView, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															2,
+																															2));
+		panelControls.add(shrinkingHelper);
+
+		buttonResetView = new JButton("Reset");
+		buttonResetView.addActionListener(this);
+
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(buttonResetView, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															22,
+																															2));
+		panelControls.add(shrinkingHelper);
 
 		// Toggle-buttons
 		// --------------
-		buttonToggleBox = new JButton( "Show/Unshow Box" );
-		buttonToggleBox.addActionListener( this );
+		buttonToggleBox = new JButton("Show/Unshow Box");
+		buttonToggleBox.addActionListener(this);
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( buttonToggleBox, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(buttonToggleBox, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															2,
+																															2));
+		panelControls.add(shrinkingHelper);
 
-		buttonToggleRecording = new JButton( "Start/Stop Recording" );
-		buttonToggleRecording.addActionListener( this );
+		buttonToggleRecording = new JButton("Start/Stop Recording");
+		buttonToggleRecording.addActionListener(this);
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( buttonToggleRecording, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
-		panelControls.add( shrinkingHelper );
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(buttonToggleRecording, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															22,
+																															2));
+		panelControls.add(shrinkingHelper);
 
 		// Channel Widgets
 		// ===============
-		panelControlsHelper = new JPanel( new GridLayout( channelWidgets.size(), 1 ) );
-		panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Channels" ) );
+		panelControlsHelper = new JPanel(new GridLayout(channelWidgets.size(),
+																										1));
+		panelControlsHelper.setBorder(BorderFactory.createTitledBorder("Channels"));
 
-		for ( int i = 0; i < channelWidgets.size(); i++ ) {
-			panelControlsHelper.add( channelWidgets.get( i ) );
+		for (int i = 0; i < channelWidgets.size(); i++)
+		{
+			panelControlsHelper.add(channelWidgets.get(i));
 		}
-		channelWidgets.get( 0 ).addSelectionVisuals();
+		channelWidgets.get(0).addSelectionVisuals();
 
-		shrinkingHelper = new JPanel( new BorderLayout() );
-		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-		panelControls.add( shrinkingHelper );
+		shrinkingHelper = new JPanel(new BorderLayout());
+		shrinkingHelper.add(panelControlsHelper, BorderLayout.SOUTH);
+		shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																															5,
+																															2,
+																															2));
+		panelControls.add(shrinkingHelper);
 
 		// Time related
 		// ============
-		if ( imgPlus.dimensionIndex( Axes.TIME ) != -1 ) {
-			panelControlsHelper = new JPanel( new MigLayout() );
-			panelControlsHelper.setBorder( BorderFactory.createTitledBorder( "Time" ) );
+		if (imgPlus.dimensionIndex(Axes.TIME) != -1)
+		{
+			panelControlsHelper = new JPanel(new MigLayout());
+			panelControlsHelper.setBorder(BorderFactory.createTitledBorder("Time"));
 
-			lblTime = new JLabel( String.format( "t=%02d", ( t + 1 ) ) );
-			lblFps = new JLabel( "fps:" );
+			lblTime = new JLabel(String.format("t=%02d", (t + 1)));
+			lblFps = new JLabel("fps:");
 
-			txtFps = new JTextField( 2 );
-			txtFps.setText( "" + fps );
-			txtFps.addActionListener( this );
+			txtFps = new JTextField(2);
+			txtFps.setText("" + fps);
+			txtFps.addActionListener(this);
 
-			sliderTime =
-					new JSlider( 0, ( int ) imgPlus.max( imgPlus.dimensionIndex( Axes.TIME ) ), 0 );
-			sliderTime.addChangeListener( this );
+			sliderTime = new JSlider(	0,
+																(int) imgPlus.max(imgPlus.dimensionIndex(Axes.TIME)),
+																0);
+			sliderTime.addChangeListener(this);
 			buttonPlayTime = new JButton();
-			buttonPlayTime.addActionListener( this );
-			setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
-			cbRenormalizeFrames = new JCheckBox( "normalize each time-point" );
-			cbRenormalizeFrames.addActionListener( this );
+			buttonPlayTime.addActionListener(this);
+			setIcon(buttonPlayTime, "play.gif", ">", Color.BLUE);
+			cbRenormalizeFrames = new JCheckBox("normalize each time-point");
+			cbRenormalizeFrames.addActionListener(this);
 
-			panelControlsHelper.add( lblTime );
-			panelControlsHelper.add( buttonPlayTime );
-			panelControlsHelper.add( sliderTime, "span, wrap" );
-			panelControlsHelper.add( lblFps );
-			panelControlsHelper.add( txtFps );
-			panelControlsHelper.add( cbRenormalizeFrames );
+			panelControlsHelper.add(lblTime);
+			panelControlsHelper.add(buttonPlayTime);
+			panelControlsHelper.add(sliderTime, "span, wrap");
+			panelControlsHelper.add(lblFps);
+			panelControlsHelper.add(txtFps);
+			panelControlsHelper.add(cbRenormalizeFrames);
 
-			shrinkingHelper = new JPanel( new BorderLayout() );
-			shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-			shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
-			panelControls.add( shrinkingHelper );
+			shrinkingHelper = new JPanel(new BorderLayout());
+			shrinkingHelper.add(panelControlsHelper, BorderLayout.SOUTH);
+			shrinkingHelper.setBorder(BorderFactory.createEmptyBorder(0,
+																																5,
+																																2,
+																																2));
+			panelControls.add(shrinkingHelper);
 		}
 
 		// Display hijacked control container if possible
 		// ----------------------------------------------
-		if ( panelClearVolumeControl != null ) {
-			this.add( panelClearVolumeControl, BorderLayout.SOUTH );
+		if (panelClearVolumeControl != null)
+		{
+			this.add(panelClearVolumeControl, BorderLayout.SOUTH);
 		}
 
-		this.add( ctnrClearVolume, BorderLayout.CENTER );
+		this.add(ctnrClearVolume, BorderLayout.CENTER);
 
-		final JPanel helperPanel = new JPanel( new BorderLayout() );
-		helperPanel.add( panelControls, BorderLayout.NORTH );
+		final JPanel helperPanel = new JPanel(new BorderLayout());
+		helperPanel.add(panelControls, BorderLayout.NORTH);
 
-		final JScrollPane scrollPane = new JScrollPane( helperPanel );
-		scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
-		this.add( scrollPane, BorderLayout.EAST );
+		final JScrollPane scrollPane = new JScrollPane(helperPanel);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		this.add(scrollPane, BorderLayout.EAST);
 
 		// Update the values in the gui fields
 		pushParamsToGui();
 
-//		this.setIgnoreRepaint( false );
-		this.setVisible( true );
+		// this.setIgnoreRepaint( false );
+		this.setVisible(true);
 	}
 
 	/**
 	 * Cleans up all ClearVolume resources and empties this panel.
 	 */
-	public void closeOldSession() {
-		try {
-			final GenericClearVolumeGui< T > self = this;
-			final Runnable todo = new Runnable() {
+	public void closeOldSession()
+	{
+		try
+		{
+			final GenericClearVolumeGui<T> self = this;
+			final Runnable todo = new Runnable()
+			{
 
 				@Override
-				public void run() {
-					if ( newtClearVolumeCanvas != null )
-						ctnrClearVolume.remove( newtClearVolumeCanvas );
-					if ( cvManager != null ) cvManager.close();
+				public void run()
+				{
+					if (newtClearVolumeCanvas != null)
+						ctnrClearVolume.remove(newtClearVolumeCanvas);
+					if (cvManager != null)
+						cvManager.close();
 					self.removeAll();
 				}
 			};
 
-			if ( javax.swing.SwingUtilities.isEventDispatchThread() ) {
+			if (javax.swing.SwingUtilities.isEventDispatchThread())
+			{
 				todo.run();
-			} else {
-				SwingUtilities.invokeAndWait( todo );
 			}
-		} catch ( final Exception e ) {
-			System.err.println( "Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
+			else
+			{
+				SwingUtilities.invokeAndWait(todo);
+			}
+		}
+		catch (final Exception e)
+		{
+			System.err.println("Closing of an old CV session was interrupted in GenericClearVolumeGui!");
 		}
 	}
 
@@ -578,28 +761,33 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @see de.mpicbg.jug.clearvolume.gui.ActiveLayerListener#activeLayerChanged(int)
 	 */
 	@Override
-	public void activeLayerChanged( final int layerId ) {
+	public void activeLayerChanged(final int layerId)
+	{
 		int i = 0;
-		for ( final ChannelWidget cw : channelWidgets ) {
-			if ( i != layerId ) {
+		for (final ChannelWidget cw : channelWidgets)
+		{
+			if (i != layerId)
+			{
 				cw.removeSelectionVisuals();
 			}
 			i++;
 		}
 
-		this.remove( panelClearVolumeControl );
-		panelClearVolumeControl =
-				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
-		this.add( panelClearVolumeControl, BorderLayout.SOUTH );
+		this.remove(panelClearVolumeControl);
+		panelClearVolumeControl = new ControlJPanel(cvManager.getActiveChannelIndex(),
+																								cvManager.getClearVolumeRendererInterface());
+		this.add(panelClearVolumeControl, BorderLayout.SOUTH);
 
-		final GenericClearVolumeGui< T > self = this;
-		SwingUtilities.invokeLater( new Runnable() {
+		final GenericClearVolumeGui<T> self = this;
+		SwingUtilities.invokeLater(new Runnable()
+		{
 
 			@Override
-			public void run() {
+			public void run()
+			{
 				self.revalidate();
 			}
-		} );
+		});
 	}
 
 	/**
@@ -608,16 +796,22 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 *
 	 * @return
 	 */
-	public static Image getCurrentAppIcon() {
-		final String os = System.getProperty( "os.name" ).toLowerCase();
+	public static Image getCurrentAppIcon()
+	{
+		final String os = System.getProperty("os.name").toLowerCase();
 		Image icon = null;
-		if ( os.indexOf( "mac" ) >= 0 ) {
+		if (os.indexOf("mac") >= 0)
+		{
 			icon = Application.getApplication().getDockIconImage();
-		} else if ( os.indexOf( "win" ) >= 0 ) {
-//			not yet clear
+		}
+		else if (os.indexOf("win") >= 0)
+		{
+			// not yet clear
 			icon = null;
-		} else {
-//			not yet clear
+		}
+		else
+		{
+			// not yet clear
 			icon = null;
 		}
 		return icon;
@@ -626,67 +820,98 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	/**
 	 * @param finalicon
 	 */
-	public static void setCurrentAppIcon( final Image finalicon ) {
-		final String os = System.getProperty( "os.name" ).toLowerCase();
+	public static void setCurrentAppIcon(final Image finalicon)
+	{
+		final String os = System.getProperty("os.name").toLowerCase();
 
-		if ( finalicon == null ) return;
+		if (finalicon == null)
+			return;
 
-		SwingUtilities.invokeLater( new Runnable() {
+		SwingUtilities.invokeLater(new Runnable()
+		{
 			@Override
-			public void run() {
-				if ( os.indexOf( "mac" ) >= 0 ) {
-					Application.getApplication().setDockIconImage( finalicon );
-				} else if ( os.indexOf( "win" ) >= 0 ) {
-//					not yet clear
-				} else {
-//					not yet clear
+			public void run()
+			{
+				if (os.indexOf("mac") >= 0)
+				{
+					Application.getApplication().setDockIconImage(finalicon);
+				}
+				else if (os.indexOf("win") >= 0)
+				{
+					// not yet clear
+				}
+				else
+				{
+					// not yet clear
 				}
 			}
-		} );
+		});
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed( final ActionEvent e ) {
+	public void actionPerformed(final ActionEvent e)
+	{
 
-		if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
+		if (e.getSource().equals(buttonUpdateView) || e.getActionCommand()
+																										.equals("UpdateView"))
+		{
 			activateGuiValues();
 			cvManager.updateView();
-		} else if ( e.getSource().equals( buttonResetView ) ) {
-			cvManager.setVoxelSize(
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.X ) ),
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Y ) ),
-					imgPlus.averageScale( imgPlus.dimensionIndex( Axes.Z ) ) );
+		}
+		else if (e.getSource().equals(buttonResetView))
+		{
+			cvManager.setVoxelSize(	imgPlus.averageScale(imgPlus.dimensionIndex(Axes.X)),
+															imgPlus.averageScale(imgPlus.dimensionIndex(Axes.Y)),
+															imgPlus.averageScale(imgPlus.dimensionIndex(Axes.Z)));
 			pushParamsToGui();
 			cvManager.resetView();
-		} else if ( e.getSource().equals( buttonToggleBox ) ) {
+		}
+		else if (e.getSource().equals(buttonToggleBox))
+		{
 			cvManager.toggleBox();
-		} else if ( e.getSource().equals( buttonToggleRecording ) ) {
+		}
+		else if (e.getSource().equals(buttonToggleRecording))
+		{
 			cvManager.toggleRecording();
-		} else if ( e.getSource().equals( cbRenormalizeFrames ) ) {
+		}
+		else if (e.getSource().equals(cbRenormalizeFrames))
+		{
 			bDoRenormalize = cbRenormalizeFrames.isSelected();
-			extractChannelsAtT( t );
+			extractChannelsAtT(t);
 			showExtractedChannels();
-		}  else if ( e.getSource().equals( txtFps ) ) {
-			try{
-				fps = Integer.parseInt( txtFps.getText() );
-			} catch(final NumberFormatException nfe) {
-				//fps = fps;
+		}
+		else if (e.getSource().equals(txtFps))
+		{
+			try
+			{
+				fps = Integer.parseInt(txtFps.getText());
 			}
-		} else if ( e.getSource().equals( buttonPlayTime ) ) {
-			if ( threadLoopTime == null ) {
-				setIcon( buttonPlayTime, "pause.gif", "X", Color.BLUE );
+			catch (final NumberFormatException nfe)
+			{
+				// fps = fps;
+			}
+		}
+		else if (e.getSource().equals(buttonPlayTime))
+		{
+			if (threadLoopTime == null)
+			{
+				setIcon(buttonPlayTime, "pause.gif", "X", Color.BLUE);
 				threadLoopTime = new LoopThread();
 				threadLoopTime.start();
-			} else {
+			}
+			else
+			{
 				threadLoopTime.endLooping();
 				threadLoopTime = null;
-				setIcon( buttonPlayTime, "play.gif", ">", Color.BLUE );
+				setIcon(buttonPlayTime, "play.gif", ">", Color.BLUE);
 			}
-		} else if ( e.getSource().equals( buttonCredits ) ) {
-			new CreditsDialog( this );
+		}
+		else if (e.getSource().equals(buttonCredits))
+		{
+			new CreditsDialog(this);
 		}
 
 	}
@@ -695,12 +920,14 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
 	 */
 	@Override
-	public void stateChanged( final ChangeEvent e ) {
-		if ( e.getSource().equals( sliderTime ) ) {
+	public void stateChanged(final ChangeEvent e)
+	{
+		if (e.getSource().equals(sliderTime))
+		{
 			t = sliderTime.getValue();
-			lblTime.setText( String.format( "t=%02d", ( t + 1 ) ) );
+			lblTime.setText(String.format("t=%02d", (t + 1)));
 
-			extractChannelsAtT( t );
+			extractChannelsAtT(t);
 			showExtractedChannels();
 		}
 	}
@@ -709,31 +936,35 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * Updates an validly initialized ClearVolume Manager so that he shows the
 	 * data in local field <code>images</code>.
 	 */
-	private void showExtractedChannels() {
-		cvManager.updateImages( images, bDoRenormalize );
+	private void showExtractedChannels()
+	{
+		cvManager.updateImages(images, bDoRenormalize);
 	}
 
 	/**
 	 */
-	private void setIcon(
-			final JButton button,
-			final String filename,
-			final String altText,
-			final Color altColor ) {
-		try {
-			URL iconURL = ClassLoader.getSystemResource( filename );
-			if ( iconURL == null ) {
-				iconURL = getClass().getClassLoader().getResource( filename );
+	private void setIcon(	final JButton button,
+												final String filename,
+												final String altText,
+												final Color altColor)
+	{
+		try
+		{
+			URL iconURL = ClassLoader.getSystemResource(filename);
+			if (iconURL == null)
+			{
+				iconURL = getClass().getClassLoader().getResource(filename);
 			}
-			final Image img = ImageIO.read( iconURL );
-			button.setIcon( new ImageIcon( img.getScaledInstance(
-					20,
-					20,
-					java.awt.Image.SCALE_SMOOTH ) ) );
-		} catch ( final Exception e ) {
+			final Image img = ImageIO.read(iconURL);
+			button.setIcon(new ImageIcon(img.getScaledInstance(	20,
+																													20,
+																													java.awt.Image.SCALE_SMOOTH)));
+		}
+		catch (final Exception e)
+		{
 			e.printStackTrace();
-			button.setText( altText );
-			button.setForeground( altColor );
+			button.setText(altText);
+			button.setForeground(altColor);
 		}
 	}
 

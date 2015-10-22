@@ -38,11 +38,6 @@
 			<artifactId>scifio</artifactId>
 		</dependency>
 		<dependency>
- 			<groupId>net.clearvolume</groupId>
- 			<artifactId>clearvolume</artifactId>
-			<version>1.1.1</version>
- 		</dependency>
- 		<dependency>
          <groupId>net.clearvolume</groupId>
  	        <artifactId>cleargl</artifactId>
 	        <version>1.0.3</version>
@@ -133,7 +128,6 @@
             	<includes>
             		<include>net.clearvolume:cleargl</include>
             		<include>net.clearvolume:clearcuda</include>
-            		<include>net.clearvolume:clearvolume</include>
             		<include>org.jogamp.gluegen:gluegen-rt</include>
             		<include>org.jogamp.jogl:jogl-all</include>
             	</includes>
