@@ -78,6 +78,8 @@ public class ImgLib2ClearVolume {
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
+		
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
@@ -90,6 +92,8 @@ public class ImgLib2ClearVolume {
 					channel,
 					TransferFunctions.getGradientForColor( channel ) );
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
+		
 		return lClearVolumeRenderer;
 	}
 
@@ -156,6 +160,8 @@ public class ImgLib2ClearVolume {
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
+		
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 
@@ -178,6 +184,8 @@ public class ImgLib2ClearVolume {
 					channel,
 					getTransferFunctionForChannel( channel, channelImgs.size() ) );
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
+		
 		return lClearVolumeRenderer;
 	}
 
@@ -262,6 +270,7 @@ public class ImgLib2ClearVolume {
 					useInCanvas );
 		}
 
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImages.size(); channel++ ) {
 
 			final byte[] bytes =
@@ -283,6 +292,7 @@ public class ImgLib2ClearVolume {
 						getTransferFunctionForChannel( channel, channelImages.size() ) );
 			}
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
 
 		return lClearVolumeRenderer;
 	}

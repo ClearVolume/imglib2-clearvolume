@@ -33,7 +33,7 @@ import javax.swing.event.ChangeListener;
 import com.apple.eawt.Application;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
-import clearvolume.renderer.ControlJPanel;
+import clearvolume.renderer.panels.ControlJPanel;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
