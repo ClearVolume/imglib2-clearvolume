@@ -242,14 +242,14 @@ public class ImgLib2ClearVolume {
 		ClearVolumeRendererInterface lClearVolumeRenderer = null;
 		if ( useCuda ) {
 			lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
-						pWindowName,
-						pWindowWidth,
-						pWindowHeight,
-						NativeTypeEnum.UnsignedShort,
-						pMaxTextureWidth,
-						pMaxTextureHeight,
-						channelImages.size(),
-						useInCanvas );
+					pWindowName,
+					pWindowWidth,
+					pWindowHeight,
+					NativeTypeEnum.UnsignedShort,
+					pMaxTextureWidth,
+					pMaxTextureHeight,
+					channelImages.size(),
+					useInCanvas );
 		} else {
 			lClearVolumeRenderer = ClearVolumeRendererFactory.newOpenCLRenderer(
 					pWindowName,
@@ -331,11 +331,10 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < ST extends RealType< ST > & NativeType< ST > >
-			List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>
-			makeClearVolumeUnsignedShortTypeCopies(
-					final List< RandomAccessibleInterval< ST >> channelImages,
-					final double[] min,
-					final double[] max ) {
+ List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > makeClearVolumeUnsignedShortTypeCopies(
+			final List< RandomAccessibleInterval< ST > > channelImages,
+			final double[] min,
+			final double[] max ) {
 
 		final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >> ret =
 				new ArrayList< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>();
@@ -360,11 +359,10 @@ public class ImgLib2ClearVolume {
 	 */
 	@SuppressWarnings( "unchecked" )
 	public static < ST extends RealType< ST > & NativeType< ST > >
-			ArrayImg< ClearVolumeUnsignedShortType, ByteArray >
-			makeClearVolumeUnsignedShortTypeCopy(
-					final RandomAccessibleInterval< ST > source,
-					final double min,
-					final double max ) {
+ ArrayImg< ClearVolumeUnsignedShortType, ByteArray > makeClearVolumeUnsignedShortTypeCopy(
+			final RandomAccessibleInterval< ST > source,
+			final double min,
+			final double max ) {
 		final int srcNumDims = source.numDimensions();
 		final long[] srcDims = new long[ srcNumDims ];
 		source.dimensions( srcDims );
@@ -422,18 +420,18 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
-			initRealImgs(
-					final List< RandomAccessibleInterval< R >> channelImages,
+ initRealImgs(
+			final List< RandomAccessibleInterval< R > > channelImages,
 			final List< ColorTable > luts,
-					final String pWindowName,
-					final int pWindowWidth,
-					final int pWindowHeight,
-					final int pMaxTextureWidth,
-					final int pMaxTextureHeight,
-					final boolean useInCanvas,
-					final double[] min,
-					final double[] max,
-					final boolean useCuda ) {
+			final String pWindowName,
+			final int pWindowWidth,
+			final int pWindowHeight,
+			final int pMaxTextureWidth,
+			final int pMaxTextureHeight,
+			final boolean useInCanvas,
+			final double[] min,
+			final double[] max,
+			final boolean useCuda ) {
 		return initClearVolumeUnsignedShortArrayImg(
 				makeClearVolumeUnsignedShortTypeCopies(
 						channelImages,
@@ -465,18 +463,18 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
-			showRealImgs(
-					final List< RandomAccessibleInterval< R > > channelImgs,
-					final List< ColorTable > luts,
-					final String pWindowName,
-					final int pWindowWidth,
-					final int pWindowHeight,
-					final int pMaxTextureWidth,
-					final int pMaxTextureHeight,
-					final boolean useInCanvas,
-					final double[] min,
-					final double[] max,
-					final boolean useCuda ) {
+ showRealImgs(
+			final List< RandomAccessibleInterval< R > > channelImgs,
+			final List< ColorTable > luts,
+			final String pWindowName,
+			final int pWindowWidth,
+			final int pWindowHeight,
+			final int pMaxTextureWidth,
+			final int pMaxTextureHeight,
+			final boolean useInCanvas,
+			final double[] min,
+			final double[] max,
+			final boolean useCuda ) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
 				makeClearVolumeUnsignedShortTypeCopies( channelImgs, min, max ),
 				luts,
@@ -563,7 +561,7 @@ public class ImgLib2ClearVolume {
 //				if ( pFloatType ) {
 //					value = pCaptureBuffers[ c ].getFloat( index );
 //				} else {
-					value = pCaptureBuffers[ c ].getChar( index );
+				value = pCaptureBuffers[ c ].getChar( index );
 //				}
 			} else {
 				throw new RuntimeException( "Capture feature does only support 1 or 2 bytes per voxel." );

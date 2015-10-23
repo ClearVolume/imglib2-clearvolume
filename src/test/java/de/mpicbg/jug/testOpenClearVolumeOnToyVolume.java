@@ -1,16 +1,21 @@
 package de.mpicbg.jug;
 
-/**
- *
- */
-
-import ij.IJ;
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import clearvolume.renderer.ClearVolumeRendererInterface;
+import clearvolume.renderer.factory.ClearVolumeRendererFactory;
+import clearvolume.transferf.TransferFunctions;
+import coremem.types.NativeTypeEnum;
+import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
+
+/**
+ *
+ */
+
+import ij.IJ;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.Normalize;
@@ -23,11 +28,6 @@ import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
-import clearvolume.renderer.ClearVolumeRendererInterface;
-import clearvolume.renderer.factory.ClearVolumeRendererFactory;
-import clearvolume.transferf.TransferFunctions;
-import coremem.types.NativeTypeEnum;
-import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 /**
  * @author jug
@@ -66,6 +66,7 @@ public class testOpenClearVolumeOnToyVolume {
 		final ClearVolumeRendererInterface cv =
 				ImgLib2ClearVolume.initRealImgs(
 						imgs,
+						null,
 						"Img -> ClearVolume",
 						512, 512,
 						512, 512,
