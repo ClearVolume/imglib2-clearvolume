@@ -23,9 +23,9 @@ public class testImageJPlugin
 		// "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYC.tif"; // OK
 		// final String fname =
 		// "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYZ.tif"; // OK
-		// final String fname =
-		// "/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZ.tif"; // OK
-		final String fname = "/Users/mweigert/Data/droso_test.tif";
+		final String fname =
+				"/Users/jug/Desktop/ClearVolumeDatasetSamples/XYCZ.tif"; // OK
+//		final String fname = "/Users/mweigert/Data/droso_test.tif";
 
 		// final String fname =
 		// "/Users/jug/Desktop/ClearVolumeDatasetSamples/droso.tif";
