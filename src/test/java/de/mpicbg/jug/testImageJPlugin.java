@@ -8,7 +8,6 @@ import net.imagej.ImageJ;
 import net.imagej.display.DatasetView;
 import net.imagej.display.ImageDisplay;
 
-
 /**
  *
  */
@@ -51,6 +50,7 @@ public class testImageJPlugin {
 //				dsv.rebuild();
 				final ImageDisplay display = ( ImageDisplay ) ij.display().createDisplay( ds );
 				dsv = ij.imageDisplay().getActiveDatasetView( display );
+
 			}
 
 			ij.ui().showUI();
@@ -62,7 +62,9 @@ public class testImageJPlugin {
 						"datasetView",
 						dsv );
 			}
-		} catch ( final IOException e ) {
+		}
+		catch (final IOException e)
+		{
 			e.printStackTrace();
 		}
 	}

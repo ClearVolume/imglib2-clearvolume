@@ -34,6 +34,7 @@ import com.apple.eawt.Application;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import clearvolume.renderer.panels.ControlJPanel;
+import de.mpicbg.jug.clearvolume.gui.rangeslider.ClipRangeSlider;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imglib2.RandomAccessibleInterval;
@@ -43,11 +44,12 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
 
-
 /**
  * @author jug
  */
-public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> extends JPanel
+public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T > >
+		extends
+		JPanel
 		implements
 		ActionListener,
 		ActiveLayerListener,
@@ -100,7 +102,6 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private boolean bDoRenormalize;
 	private JCheckBox cbRenormalizeFrames;
 
-
 	private JButton buttonToggleBox;
 	private JButton buttonToggleRecording;
 	private List< ChannelWidget > channelWidgets;
@@ -110,12 +111,13 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	private boolean useCuda;
 
 	private ImgPlus< T > imgPlus;
-	private List< RandomAccessibleInterval< T >> images;
+	private List< RandomAccessibleInterval< T > > images;
 	private ClearVolumeManager< T > cvManager;
 	private LoopThread threadLoopTime;
 	private JLabel lblFps;
 	private JTextField txtFps;
 	private int fps = 5;
+	private ClipRangeSlider[] clipBoxSliders;
 
 	/**
 	 * The LUTs as they are received from the DatasetView.
@@ -160,7 +162,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	}
 
 	private void setImagesFromImgPlus( final ImgPlus< T > imgPlus ) {
-		if ( imgPlus == null ) return;
+		if ( imgPlus == null )
+			return;
 
 		final int dX = imgPlus.dimensionIndex( Axes.X );
 		final int dY = imgPlus.dimensionIndex( Axes.Y );
@@ -175,10 +178,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				throw new IllegalArgumentException( "2 dimensional input image must have X and Y axes." );
 			}
 		} else if ( imgPlus.numDimensions() == 3 ) {
-			if ( dX>=0 && dY>=0 && dZ>=0 ) {
+			if ( dX >= 0 && dY >= 0 && dZ >= 0 ) {
 				images.add( imgPlus );
-			} else
-			if ( dX >= 0 && dY >= 0 && dC >= 0 ) {
+			} else if ( dX >= 0 && dY >= 0 && dC >= 0 ) {
 				addImagePerChannel( imgPlus, dC );
 			} else
 			if ( dX >= 0 && dY >= 0 && dT >= 0 ) {
@@ -191,14 +193,12 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				addImagePerChannel( imgPlus, dC );
 			} else
 			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC < 0 && dT >= 0 ) {
-//				t = 0;
 				extractChannelsAtT( timeIndexToShow, dC, dT );
 			} else {
 				throw new IllegalArgumentException( "4 dimensional input image must have X, Y and Z axes plus either CHANNEL, or TIME." );
 			}
 		} else if ( imgPlus.numDimensions() == 5 ) {
 			if ( dX >= 0 && dY >= 0 && dZ >= 0 && dC >= 0 && dT >= 0 ) {
-//				t = 0;
 				extractChannelsAtT( timeIndexToShow, dC, dT );
 			} else {
 				throw new IllegalArgumentException( "Five dimensional input image must contain X,Y,Z,CHANNEL, and TIME axes!" );
@@ -238,9 +238,14 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	 * @param dC
 	 * @param dT
 	 */
-	public void extractChannelsAtT( final int t, final int dC, final int dT ) {
-		final RandomAccessibleInterval< T > timePointToShow =
-				Views.hyperSlice( imgPlus, dT, t );
+	public void extractChannelsAtT(
+			final int t,
+			final int dC,
+			final int dT ) {
+		final RandomAccessibleInterval< T > timePointToShow = Views.hyperSlice(
+				imgPlus,
+				dT,
+				t );
 		if ( dC == -1 ) {
 			final ArrayList< RandomAccessibleInterval< T > > newimage =
 					new ArrayList< RandomAccessibleInterval< T > >();
@@ -309,7 +314,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public void relaunchClearVolumeManager( final ClearVolumeManager< T > oldManager ) {
 		final double[] oldMinI = oldManager.getMinIntensities();
 		final double[] oldMaxI = oldManager.getMaxIntensities();
-		final List< RandomAccessibleInterval< T >> oldImages = oldManager.getChannelImages();
+		final List< RandomAccessibleInterval< T > > oldImages = oldManager.getChannelImages();
 		final double oldVoxelSizeX = oldManager.getVoxelSizeX();
 		final double oldVoxelSizeY = oldManager.getVoxelSizeY();
 		final double oldVoxelSizeZ = oldManager.getVoxelSizeZ();
@@ -336,10 +341,14 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				SwingUtilities.invokeAndWait( todo );
 			}
 		} catch ( final Exception e ) {
-			System.err.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
+			System.err
+					.println( "Relaunching CV session was interrupted in GenericClearVolumeGui!" );
 		}
 
-		cvManager.setVoxelSize( oldVoxelSizeX, oldVoxelSizeY, oldVoxelSizeZ );
+		cvManager.setVoxelSize(
+				oldVoxelSizeX,
+				oldVoxelSizeY,
+				oldVoxelSizeZ );
 		for ( int i = 0; i < oldImages.size(); i++ ) {
 			cvManager.setIntensityValues( i, oldMinI[ i ], oldMaxI[ i ] );
 		}
@@ -348,7 +357,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		buildGui();
 	}
 
-	private void setTextureSizeAndCudaFlag( final int textureRes, final boolean useCuda ) {
+	private void setTextureSizeAndCudaFlag(
+			final int textureRes,
+			final boolean useCuda ) {
 		this.maxTextureResolution = textureRes;
 		this.useCuda = useCuda;
 
@@ -366,6 +377,16 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		txtVoxelSizeX.setText( "" + cvManager.getVoxelSizeX() );
 		txtVoxelSizeY.setText( "" + cvManager.getVoxelSizeY() );
 		txtVoxelSizeZ.setText( "" + cvManager.getVoxelSizeZ() );
+
+		final float[] clipbox = cvManager.getClipBox();
+
+		// System.out.println("pushing:");
+		// for (int j = 0; j < clipBoxSliders.length; j++)
+		// {
+		// clipBoxSliders[j].setValueLower(clipbox[2 * j]);
+		// clipBoxSliders[j].setValueUpper(clipbox[2 * j + 1]);
+		// }
+
 	}
 
 	/**
@@ -397,10 +418,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		final double voxelSizeZ = d;
 
 		cvManager.setVoxelSize( voxelSizeX, voxelSizeY, voxelSizeZ );
+
 	}
 
 	private void buildGui() {
-//		this.setIgnoreRepaint( true );
+		// this.setIgnoreRepaint( true );
 		this.setVisible( false );
 		this.removeAll();
 
@@ -410,14 +432,19 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		ctnrClearVolume.setLayout( new BorderLayout() );
 
 		if ( cvManager != null ) {
-			newtClearVolumeCanvas = cvManager.getClearVolumeRendererInterface().getNewtCanvasAWT();
+			newtClearVolumeCanvas = cvManager
+					.getClearVolumeRendererInterface()
+					.getNewtCanvasAWT();
 			ctnrClearVolume.add( newtClearVolumeCanvas, BorderLayout.CENTER );
 
 			panelClearVolumeControl =
-					new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
-			panelClearVolumeControl.setClearVolumeRendererInterface( cvManager.getClearVolumeRendererInterface() );
+					new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager
+							.getClearVolumeRendererInterface() );
+			panelClearVolumeControl
+					.setClearVolumeRendererInterface( cvManager.getClearVolumeRendererInterface() );
 		} else {
-			System.err.println( "ClearVolumeTableCellView: Did you intend this? You called buildGui while cvManager==null!" );
+			System.err.println(
+					"ClearVolumeTableCellView: Did you intend this? You called buildGui while cvManager==null!" );
 		}
 
 		// Main controls panel
@@ -432,19 +459,31 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		buttonCredits.addActionListener( this );
 
 		final JPanel panelCreditsHelper = new JPanel( new GridLayout( 1, 1 ) );
-		panelCreditsHelper.setBorder( BorderFactory.createEmptyBorder( 5, 5, 2, 2 ) );
+		panelCreditsHelper.setBorder( BorderFactory.createEmptyBorder(
+				5,
+				5,
+				2,
+				2 ) );
 
 		panelCreditsHelper.add( buttonCredits );
 
 		JPanel shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelCreditsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				2,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		// Parameters that require a view update
 		// -------------------------------------
 		JPanel panelControlsHelper = new JPanel( new GridLayout( 3, 2 ) );
-		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		panelControlsHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				2,
+				2 ) );
 
 		final JLabel lblVoxelSizeX = new JLabel( "VoxelDimension.X" );
 		txtVoxelSizeX = new JTextField( 8 );
@@ -468,7 +507,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				2,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		buttonUpdateView = new JButton( "Set" );
@@ -476,7 +519,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonUpdateView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				2,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		buttonResetView = new JButton( "Reset" );
@@ -484,8 +531,53 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonResetView, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				11,
+				2 ) );
 		panelControls.add( shrinkingHelper );
+
+		// Crop Box
+		// --------------
+		final JPanel panelSliderHelper = new JPanel( new GridLayout( 3, 2 ) );
+		panelSliderHelper.setBorder( BorderFactory.createTitledBorder( "Crop box" ) );
+
+		// create the 3 sliders that will affect the clipping box
+		clipBoxSliders = new ClipRangeSlider[] { new ClipRangeSlider(),
+												 new ClipRangeSlider(),
+												 new ClipRangeSlider() };
+
+		for ( final ClipRangeSlider slide : clipBoxSliders ) {
+			shrinkingHelper = new JPanel( new BorderLayout() );
+			shrinkingHelper.add( slide, BorderLayout.SOUTH );
+			shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+					0,
+					5,
+					2,
+					2 ) );
+			panelSliderHelper.add( shrinkingHelper );
+
+			System.out.println( slide.getValueUpper() );
+			slide.addChangeListener( this );
+
+			slide.addChangeListener( new ChangeListener() {
+
+				@Override
+				public void stateChanged( final ChangeEvent e ) {
+					final float[] clipbox = new float[ 6 ];
+
+					for ( int j = 0; j < clipBoxSliders.length; j++ ) {
+						clipbox[ 2 * j ] = ( clipBoxSliders[ j ].getValueLower() );
+						clipbox[ 2 * j + 1 ] = ( clipBoxSliders[ j ].getValueUpper() );
+					}
+
+					cvManager.setClipBox( clipbox );
+
+				}
+			} );
+		}
+		panelControls.add( panelSliderHelper );
 
 		// Toggle-buttons
 		// --------------
@@ -494,7 +586,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonToggleBox, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				11,
+				5,
+				2,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		buttonToggleRecording = new JButton( "Start/Stop Recording" );
@@ -502,7 +598,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( buttonToggleRecording, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 22, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				22,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		// Channel Widgets
@@ -517,7 +617,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
 		shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+		shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+				0,
+				5,
+				2,
+				2 ) );
 		panelControls.add( shrinkingHelper );
 
 		// Time related
@@ -551,7 +655,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 
 			shrinkingHelper = new JPanel( new BorderLayout() );
 			shrinkingHelper.add( panelControlsHelper, BorderLayout.SOUTH );
-			shrinkingHelper.setBorder( BorderFactory.createEmptyBorder( 0, 5, 2, 2 ) );
+			shrinkingHelper.setBorder( BorderFactory.createEmptyBorder(
+					0,
+					5,
+					2,
+					2 ) );
 			panelControls.add( shrinkingHelper );
 		}
 
@@ -573,7 +681,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		// Update the values in the gui fields
 		pushParamsToGui();
 
-//		this.setIgnoreRepaint( false );
+		// this.setIgnoreRepaint( false );
 		this.setVisible( true );
 	}
 
@@ -589,7 +697,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				public void run() {
 					if ( newtClearVolumeCanvas != null )
 						ctnrClearVolume.remove( newtClearVolumeCanvas );
-					if ( cvManager != null ) cvManager.close();
+					if ( cvManager != null )
+						cvManager.close();
 					self.removeAll();
 				}
 			};
@@ -600,7 +709,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 				SwingUtilities.invokeAndWait( todo );
 			}
 		} catch ( final Exception e ) {
-			System.err.println( "Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
+			System.err.println(
+					"Closing of an old CV session was interrupted in GenericClearVolumeGui!" );
 		}
 	}
 
@@ -618,8 +728,8 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		}
 
 		this.remove( panelClearVolumeControl );
-		panelClearVolumeControl =
-				new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager.getClearVolumeRendererInterface() );
+		panelClearVolumeControl = new ControlJPanel( cvManager.getActiveChannelIndex(), cvManager
+				.getClearVolumeRendererInterface() );
 		this.add( panelClearVolumeControl, BorderLayout.SOUTH );
 
 		final GenericClearVolumeGui< T > self = this;
@@ -644,10 +754,10 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 		if ( os.indexOf( "mac" ) >= 0 ) {
 			icon = Application.getApplication().getDockIconImage();
 		} else if ( os.indexOf( "win" ) >= 0 ) {
-//			not yet clear
+			// not yet clear
 			icon = null;
 		} else {
-//			not yet clear
+			// not yet clear
 			icon = null;
 		}
 		return icon;
@@ -659,17 +769,19 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	public static void setCurrentAppIcon( final Image finalicon ) {
 		final String os = System.getProperty( "os.name" ).toLowerCase();
 
-		if ( finalicon == null ) return;
+		if ( finalicon == null )
+			return;
 
 		SwingUtilities.invokeLater( new Runnable() {
+
 			@Override
 			public void run() {
 				if ( os.indexOf( "mac" ) >= 0 ) {
 					Application.getApplication().setDockIconImage( finalicon );
 				} else if ( os.indexOf( "win" ) >= 0 ) {
-//					not yet clear
+					// not yet clear
 				} else {
-//					not yet clear
+					// not yet clear
 				}
 			}
 		} );
@@ -681,7 +793,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 	@Override
 	public void actionPerformed( final ActionEvent e ) {
 
-		if ( e.getSource().equals( buttonUpdateView ) || e.getActionCommand().equals( "UpdateView" ) ) {
+		if ( e.getSource().equals( buttonUpdateView ) || e
+				.getActionCommand()
+				.equals( "UpdateView" ) ) {
 			activateGuiValues();
 			cvManager.updateView();
 		} else if ( e.getSource().equals( buttonResetView ) ) {
@@ -699,11 +813,11 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T >> e
 			bDoRenormalize = cbRenormalizeFrames.isSelected();
 			extractChannelsAtT( timeIndexToShow );
 			showExtractedChannels();
-		}  else if ( e.getSource().equals( txtFps ) ) {
-			try{
+		} else if ( e.getSource().equals( txtFps ) ) {
+			try {
 				fps = Integer.parseInt( txtFps.getText() );
-			} catch(final NumberFormatException nfe) {
-				//fps = fps;
+			} catch ( final NumberFormatException nfe ) {
+				// fps = fps;
 			}
 		} else if ( e.getSource().equals( buttonPlayTime ) ) {
 			if ( threadLoopTime == null ) {
