@@ -3,6 +3,7 @@ package de.mpicbg.jug.clearvolume.gui;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
@@ -20,7 +21,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implements
-																																				Runnable
+		Runnable
 {
 
 	private ClearVolumeRendererInterface cv;
@@ -86,13 +87,13 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 		for (int i = 0; i < numChannels; i++)
 		{
 			final T min = images.get(i)
-													.randomAccess()
-													.get()
-													.createVariable();
+					.randomAccess()
+					.get()
+					.createVariable();
 			final T max = images.get(i)
-													.randomAccess()
-													.get()
-													.createVariable();
+					.randomAccess()
+					.get()
+					.createVariable();
 			ComputeMinMax.computeMinMax(images.get(i), min, max);
 			minIntensities[i] = min.getRealDouble();
 			maxIntensities[i] = max.getRealDouble();
@@ -119,7 +120,7 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	 * @return true if the update was successful
 	 */
 	public boolean updateImages(final List<RandomAccessibleInterval<T>> imagesToShow,
-															final boolean doNormalize)
+			final boolean doNormalize )
 	{
 
 		if (images.size() != imagesToShow.size())
@@ -144,8 +145,8 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 		}
 
 		final List<ArrayImg<ClearVolumeUnsignedShortType, ByteArray>> converted = ImgLib2ClearVolume.makeClearVolumeUnsignedShortTypeCopies(imagesToShow,
-																																																																				minIntensities,
-																																																																				maxIntensities);
+						minIntensities,
+						maxIntensities );
 
 		cv.setVolumeDataUpdateAllowed(false);
 		c = 0;
@@ -155,19 +156,23 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 			final int sizeY = (int) (img.dimension(1));
 			final int sizeZ = (int) (img.dimension(2));
 			final byte[] bytes = converted.get(c)
-																		.update(null)
-																		.getCurrentStorageArray();
-			cv.setVolumeDataBuffer(	c,
-															ByteBuffer.wrap(bytes),
-															sizeX,
-															sizeY,
-															sizeZ,
-															voxelSizeX,
-															voxelSizeY,
-															voxelSizeZ);
+					.update( null )
+					.getCurrentStorageArray();
+			cv.setVolumeDataBuffer(
+					0,
+					TimeUnit.SECONDS,
+					c,
+					ByteBuffer.wrap( bytes ),
+					sizeX,
+					sizeY,
+					sizeZ,
+					voxelSizeX,
+					voxelSizeY,
+					voxelSizeZ );
 			c++;
 		}
 		cv.setVolumeDataUpdateAllowed(true);
+		cv.waitToFinishAllDataBufferCopy( 5, TimeUnit.SECONDS );
 
 		return true;
 	}
@@ -253,16 +258,16 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	}
 
 	public void setIntensityValues(	final int channelIndex,
-																	final double minIntensity,
-																	final double maxIntensity)
+			final double minIntensity,
+			final double maxIntensity )
 	{
 		minIntensities[channelIndex] = minIntensity;
 		maxIntensities[channelIndex] = maxIntensity;
 	}
 
 	public void setVoxelSize(	final double voxelSizeX,
-														final double voxelSizeY,
-														final double voxelSizeZ)
+			final double voxelSizeY,
+			final double voxelSizeZ )
 	{
 		this.voxelSizeX = voxelSizeX;
 		this.voxelSizeY = voxelSizeY;
@@ -279,7 +284,7 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	 * @param textureHeight
 	 */
 	public void setTextureSize(	final int textureWidth,
-															final int textureHeight)
+			final int textureHeight )
 	{
 		this.maxTextureHeight = textureHeight;
 		this.maxTextureWidth = textureWidth;
@@ -384,7 +389,7 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	 * @param visible
 	 */
 	public void setChannelVisible(final int channelId,
-																final boolean visible)
+			final boolean visible )
 	{
 		cv.setLayerVisible(channelId, visible);
 		cv.requestDisplay();
@@ -404,7 +409,7 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	 * @param brightness
 	 */
 	public void setBrightness(final int channelId,
-														final double brightness)
+			final double brightness )
 	{
 		cv.setBrightness(channelId, brightness);
 
@@ -425,7 +430,7 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 	 * @param gradientForColor
 	 */
 	public void setTransferFunction(final int channelId,
-																	final TransferFunction transferFunction)
+			final TransferFunction transferFunction )
 	{
 		cv.setTransferFunction(channelId, transferFunction);
 	}
