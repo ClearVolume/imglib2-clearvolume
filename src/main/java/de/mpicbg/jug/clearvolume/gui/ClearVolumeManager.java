@@ -454,7 +454,6 @@ public class ClearVolumeManager<T extends RealType<T> & NativeType<T>>	implement
 
 	public float[] getClipBox()
 	{
-
 		return cv.getClipBox();
 	}
 }

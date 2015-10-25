@@ -132,10 +132,11 @@
             
             <artifactSet>
             	<includes>
-            		<include>net.clearvolume:cleargl</include>
+<!--             		<include>net.clearvolume:cleargl</include>
             		<include>net.clearvolume:clearcuda</include>
-            		<include>net.clearvolume:clearvolume</include>
-            		<include>org.jogamp.gluegen:gluegen-rt</include>
+            		<include>net.clearvolume:clearvolume</include> 
+-->
+             		<include>org.jogamp.gluegen:gluegen-rt</include>
             		<include>org.jogamp.jogl:jogl-all</include>
             	</includes>
             </artifactSet>
@@ -145,33 +146,12 @@
                   <pattern>javax.media.opengl</pattern>
                   <shadedPattern>cv.javax.media.opengl</shadedPattern>
                 </relocation>
-<!--                 <relocation>
-                  <pattern>com.jogamp</pattern>
-                  <shadedPattern>cv.com.jugamp</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>jogl</pattern>
-                  <shadedPattern>cv.jugl</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>jogamp</pattern>
-                  <shadedPattern>cv.jugamp</shadedPattern>
-                  <excludes>
-                      <exclude>jogamp.nativetag.common.linux.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.common.macosx.universal.*</exclude>
-                      <exclude>jogamp.nativetag.common.windows.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.linux.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.macosx.universal.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.windows.amd64.*</exclude>
-                  </excludes>
-                </relocation>
- -->
                </relocations>            
             </configuration>
             
           </execution>
         </executions>
-      </plugin>
+       </plugin>
     </plugins>
 	</build>
   
