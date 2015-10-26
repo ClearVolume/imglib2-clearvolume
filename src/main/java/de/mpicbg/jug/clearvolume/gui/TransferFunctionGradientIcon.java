@@ -47,8 +47,8 @@ class TransferFunctionGradientIcon implements Icon {
 			final float g = colorArray[ i + 1 ];
 			final float b = colorArray[ i + 2 ];
 			final float a = colorArray[ i + 3 ];
-			end = ( int ) spacePerColor * ( i / 4 + 1 );
-			g2d.setColor( new Color( r, g, b, a ) );
+			end = ( int ) ( spacePerColor * ( i / 4.0 + 1 ) );
+			g2d.setColor( new Color( r, g, b ) );// a not used
 			g2d.fillRect( x + start, y, end - start, getIconHeight() );
 			start = end;
 		}

@@ -8,15 +8,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.net.URL;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
-import net.imagej.Dataset;
-import net.imagej.ImgPlus;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 
 import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
@@ -26,6 +22,11 @@ import org.scijava.plugin.Plugin;
 import clearvolume.utils.AppleMac;
 import de.mpicbg.jug.clearvolume.gui.ClearVolumeSplashFrame;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
+import net.imagej.ImgPlus;
+import net.imagej.display.DatasetView;
+import net.imglib2.display.ColorTable;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 
 /**
  * @author jug
@@ -36,7 +37,7 @@ import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> implements Command {
 
 	@Parameter( label = "3D ImgPlus to be shown." )
-	private Dataset dataset;
+	private DatasetView datasetView;
 	private ImgPlus< T > imgPlus;
 
 	private final int windowWidth = 1200;
@@ -58,10 +59,11 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 	@Override
 	public void run() {
 
-		imgPlus = ( ImgPlus< T > ) dataset.getImgPlus();
+		imgPlus = ( ImgPlus< T > ) datasetView.getData().getImgPlus();
+		final List< ColorTable > luts = datasetView.getColorTables();
 
 		final boolean isShowable = checkIfShowable( frame, imgPlus, true );
-		useCuda = !( !useCuda ); // to avoid eclipse making this field 'final' -- stupid!
+		useCuda = !( !useCuda );// to avoid eclipse making this field 'final' -- stupid!
 
 		if ( isShowable ) {
 			final Dimension screenDims = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
@@ -70,14 +72,18 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 			frame = new JFrame( "ClearVolume" );
 			frame.setLayout( new BorderLayout() );
-			frame.setBounds( ( screenDims.width - windowWidth ) / 2, ( screenDims.height - windowHeight ) / 2, windowWidth, windowHeight );
+			frame.setBounds(
+					( screenDims.width - windowWidth ) / 2,
+					( screenDims.height - windowHeight ) / 2,
+					windowWidth,
+					windowHeight );
 
 			final Image finalicon = GenericClearVolumeGui.getCurrentAppIcon();
 
 			final ClearVolumeSplashFrame loadFrame = new ClearVolumeSplashFrame();
 
 			panelGui =
-					new GenericClearVolumeGui< T >( imgPlus, textureResolution, useCuda );
+					new GenericClearVolumeGui< T >( imgPlus, luts, textureResolution, useCuda );
 			frame.add( panelGui );
 			setClearVolumeIcon( frame );
 			frame.setVisible( true );
@@ -103,11 +109,12 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 		String message = "";
 
 		if ( imgPlus == null ) {
-			message = "ClearVolume can not be initialized with a null image!";
+			message = "ClearVolume cannot be initialized with a null image!";
 			ret = false;
-		} else if ( imgPlus.numDimensions() < 3 || imgPlus.numDimensions() > 5 ) {
+		} else if ( imgPlus.numDimensions() < 2 || imgPlus.numDimensions() > 5 ) {
 			message =
-					"Only images with 3 (X,Y,Z) or 4 (X,Y,C,Z) and 5 (X,Y,C,Z,T) dimensions\ncan be shown, current image has " + imgPlus.numDimensions() + " dimensions.";
+					"Only images with 2(X,Y), 3 (X,Y,Z) or 4 (X,Y,C,Z) and 5 (X,Y,C,Z,T) dimensions\ncan be shown, current image has " + imgPlus
+							.numDimensions() + " dimensions.";
 			ret = false;
 		}
 

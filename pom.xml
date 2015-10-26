@@ -7,16 +7,17 @@
  	<parent>
 		<groupId>sc.fiji</groupId>
 		<artifactId>pom-fiji</artifactId>
-		<version>6.3.0</version>
+		<version>15.6.0</version>
 	</parent>
  
 	<properties>
-		<scijava.jvm.version>1.8</scijava.jvm.version>    	
+		<scijava.jvm.version>1.8</scijava.jvm.version>
+		<enforcer.skip>true</enforcer.skip>
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
  
 	<artifactId>imglib-clearvolume</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 
     <name>display imglib2 images in clearvolume</name>
 
@@ -56,19 +57,18 @@
                 <dependency>
                     <groupId>net.clearvolume</groupId>
                     <artifactId>clearvolume</artifactId>
-                    <version>1.0-STABLE</version>
+                    <version>1.1.1</version>
                 </dependency>
                 <dependency>
                     <groupId>net.clearvolume</groupId>
                     <artifactId>cleargl</artifactId>
-                    <version>1.0.1</version>
+                    <version>1.0.3</version>
                 </dependency>
                 <dependency>
                     <groupId>net.clearvolume</groupId>
                     <artifactId>clearcuda</artifactId>
-                    <version>0.9.2</version>
+                    <version>0.9.4</version>
                 </dependency>
-
             </dependencies>
         </profile>
     </profiles>
@@ -178,10 +178,11 @@
             
             <artifactSet>
             	<includes>
-            		<include>net.clearvolume:cleargl</include>
+<!--             		<include>net.clearvolume:cleargl</include>
             		<include>net.clearvolume:clearcuda</include>
-            		<include>net.clearvolume:clearvolume</include>
-            		<include>org.jogamp.gluegen:gluegen-rt</include>
+            		<include>net.clearvolume:clearvolume</include> 
+ -->
+             		<include>org.jogamp.gluegen:gluegen-rt</include>
             		<include>org.jogamp.jogl:jogl-all</include>
                     <include>de.jcuda:jcuda-maven</include>
             	</includes>
@@ -192,33 +193,12 @@
                   <pattern>javax.media.opengl</pattern>
                   <shadedPattern>cv.javax.media.opengl</shadedPattern>
                 </relocation>
-<!--                 <relocation>
-                  <pattern>com.jogamp</pattern>
-                  <shadedPattern>cv.com.jugamp</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>jogl</pattern>
-                  <shadedPattern>cv.jugl</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>jogamp</pattern>
-                  <shadedPattern>cv.jugamp</shadedPattern>
-                  <excludes>
-                      <exclude>jogamp.nativetag.common.linux.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.common.macosx.universal.*</exclude>
-                      <exclude>jogamp.nativetag.common.windows.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.linux.amd64.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.macosx.universal.*</exclude>
-                      <exclude>jogamp.nativetag.opengl.windows.amd64.*</exclude>
-                  </excludes>
-                </relocation>
- -->
                </relocations>            
             </configuration>
             
           </execution>
         </executions>
-      </plugin>
+        </plugin>
     </plugins>
 	</build>
   

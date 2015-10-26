@@ -8,12 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import clearvolume.renderer.ClearVolumeRendererInterface;
+import clearvolume.renderer.factory.ClearVolumeRendererFactory;
+import clearvolume.transferf.TransferFunction;
+import clearvolume.transferf.TransferFunction1D;
+import clearvolume.transferf.TransferFunctions;
+import coremem.types.NativeTypeEnum;
+import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorTable;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -27,12 +35,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
-import clearvolume.renderer.ClearVolumeRendererInterface;
-import clearvolume.renderer.factory.ClearVolumeRendererFactory;
-import clearvolume.transferf.TransferFunction;
-import clearvolume.transferf.TransferFunctions;
-import coremem.types.NativeTypeEnum;
-import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 
 /**
  * @author jug
@@ -76,6 +78,8 @@ public class ImgLib2ClearVolume {
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
+		
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
@@ -88,6 +92,8 @@ public class ImgLib2ClearVolume {
 					channel,
 					TransferFunctions.getGradientForColor( channel ) );
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
+		
 		return lClearVolumeRenderer;
 	}
 
@@ -154,6 +160,8 @@ public class ImgLib2ClearVolume {
 						pMaxTextureHeight,
 						channelImgs.size(),
 						useInCanvas );
+		
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 
@@ -176,6 +184,8 @@ public class ImgLib2ClearVolume {
 					channel,
 					getTransferFunctionForChannel( channel, channelImgs.size() ) );
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
+		
 		return lClearVolumeRenderer;
 	}
 
@@ -214,6 +224,8 @@ public class ImgLib2ClearVolume {
 	 * This method does NOT duplicate the image, but works directly on the
 	 * ArrayImg data.
 	 *
+	 * @param luts
+	 *
 	 * @param imgVolumeDataArray
 	 * @param pWindowName
 	 * @param pWindowWidth
@@ -227,6 +239,7 @@ public class ImgLib2ClearVolume {
 	 */
 	public static ClearVolumeRendererInterface initClearVolumeUnsignedShortArrayImg(
 			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImages,
+			final List< ColorTable > luts,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -237,14 +250,14 @@ public class ImgLib2ClearVolume {
 		ClearVolumeRendererInterface lClearVolumeRenderer = null;
 		if ( useCuda ) {
 			lClearVolumeRenderer = ClearVolumeRendererFactory.newBestRenderer(
-						pWindowName,
-						pWindowWidth,
-						pWindowHeight,
-						NativeTypeEnum.UnsignedShort,
-						pMaxTextureWidth,
-						pMaxTextureHeight,
-						channelImages.size(),
-						useInCanvas );
+					pWindowName,
+					pWindowWidth,
+					pWindowHeight,
+					NativeTypeEnum.UnsignedShort,
+					pMaxTextureWidth,
+					pMaxTextureHeight,
+					channelImages.size(),
+					useInCanvas );
 		} else {
 			lClearVolumeRenderer = ClearVolumeRendererFactory.newOpenCLRenderer(
 					pWindowName,
@@ -257,6 +270,7 @@ public class ImgLib2ClearVolume {
 					useInCanvas );
 		}
 
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(false);
 		for ( int channel = 0; channel < channelImages.size(); channel++ ) {
 
 			final byte[] bytes =
@@ -267,10 +281,18 @@ public class ImgLib2ClearVolume {
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
-			lClearVolumeRenderer.setTransferFunction(
-					channel,
-					getTransferFunctionForChannel( channel, channelImages.size() ) );
+
+			if ( luts != null && luts.size() > channel ) {
+				final ColorTable lut = luts.get( channel );
+				final TransferFunction tf = ImgLib2ClearVolume.getTransferFunctionFor( lut );
+				lClearVolumeRenderer.setTransferFunction( channel, tf );
+			} else {
+				lClearVolumeRenderer.setTransferFunction(
+						channel,
+						getTransferFunctionForChannel( channel, channelImages.size() ) );
+			}
 		}
+		lClearVolumeRenderer.setVolumeDataUpdateAllowed(true);
 
 		return lClearVolumeRenderer;
 	}
@@ -293,6 +315,7 @@ public class ImgLib2ClearVolume {
 	 */
 	public static ClearVolumeRendererInterface showClearVolumeUnsignedShortArrayImgWindow(
 			final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > channelImgs,
+			final List< ColorTable > luts,
 			final String pWindowName,
 			final int pWindowWidth,
 			final int pWindowHeight,
@@ -301,7 +324,11 @@ public class ImgLib2ClearVolume {
 			final boolean useInCanvas,
 			final boolean useCuda ) {
 		final ClearVolumeRendererInterface cv =
-				initClearVolumeUnsignedShortArrayImg( channelImgs, pWindowName, pWindowWidth,
+				initClearVolumeUnsignedShortArrayImg(
+						channelImgs,
+						luts,
+						pWindowName,
+						pWindowWidth,
 						pWindowHeight, pMaxTextureWidth, pMaxTextureHeight, useInCanvas, useCuda );
 		cv.requestDisplay();
 		return cv;
@@ -314,11 +341,10 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < ST extends RealType< ST > & NativeType< ST > >
-			List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>
-			makeClearVolumeUnsignedShortTypeCopies(
-					final List< RandomAccessibleInterval< ST >> channelImages,
-					final double[] min,
-					final double[] max ) {
+ List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray > > makeClearVolumeUnsignedShortTypeCopies(
+			final List< RandomAccessibleInterval< ST > > channelImages,
+			final double[] min,
+			final double[] max ) {
 
 		final List< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >> ret =
 				new ArrayList< ArrayImg< ClearVolumeUnsignedShortType, ByteArray >>();
@@ -343,11 +369,10 @@ public class ImgLib2ClearVolume {
 	 */
 	@SuppressWarnings( "unchecked" )
 	public static < ST extends RealType< ST > & NativeType< ST > >
-			ArrayImg< ClearVolumeUnsignedShortType, ByteArray >
-			makeClearVolumeUnsignedShortTypeCopy(
-					final RandomAccessibleInterval< ST > source,
-					final double min,
-					final double max ) {
+ ArrayImg< ClearVolumeUnsignedShortType, ByteArray > makeClearVolumeUnsignedShortTypeCopy(
+			final RandomAccessibleInterval< ST > source,
+			final double min,
+			final double max ) {
 		final int srcNumDims = source.numDimensions();
 		final long[] srcDims = new long[ srcNumDims ];
 		source.dimensions( srcDims );
@@ -393,6 +418,7 @@ public class ImgLib2ClearVolume {
 	 * Note: any given image will be duplicated in memory!
 	 *
 	 * @param channelImages
+	 * @param luts
 	 * @param pWindowName
 	 * @param pWindowWidth
 	 * @param pWindowHeight
@@ -404,21 +430,24 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
-			initRealImgs(
-					final List< RandomAccessibleInterval< R >> channelImages,
-					final String pWindowName,
-					final int pWindowWidth,
-					final int pWindowHeight,
-					final int pMaxTextureWidth,
-					final int pMaxTextureHeight,
-					final boolean useInCanvas,
-					final double[] min,
-					final double[] max,
-					final boolean useCuda ) {
+ initRealImgs(
+			final List< RandomAccessibleInterval< R > > channelImages,
+			final List< ColorTable > luts,
+			final String pWindowName,
+			final int pWindowWidth,
+			final int pWindowHeight,
+			final int pMaxTextureWidth,
+			final int pMaxTextureHeight,
+			final boolean useInCanvas,
+			final double[] min,
+			final double[] max,
+			final boolean useCuda ) {
 		return initClearVolumeUnsignedShortArrayImg(
-				makeClearVolumeUnsignedShortTypeCopies( channelImages,
+				makeClearVolumeUnsignedShortTypeCopies(
+						channelImages,
 						min,
 						max ),
+				luts,
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -444,19 +473,21 @@ public class ImgLib2ClearVolume {
 	 * @return
 	 */
 	public static < R extends RealType< R > & NativeType< R > > ClearVolumeRendererInterface
-			showRealImgs(
-					final List< RandomAccessibleInterval< R > > channelImgs,
-					final String pWindowName,
-					final int pWindowWidth,
-					final int pWindowHeight,
-					final int pMaxTextureWidth,
-					final int pMaxTextureHeight,
-					final boolean useInCanvas,
-					final double[] min,
-					final double[] max,
-					final boolean useCuda ) {
+ showRealImgs(
+			final List< RandomAccessibleInterval< R > > channelImgs,
+			final List< ColorTable > luts,
+			final String pWindowName,
+			final int pWindowWidth,
+			final int pWindowHeight,
+			final int pMaxTextureWidth,
+			final int pMaxTextureHeight,
+			final boolean useInCanvas,
+			final double[] min,
+			final double[] max,
+			final boolean useCuda ) {
 		return showClearVolumeUnsignedShortArrayImgWindow(
 				makeClearVolumeUnsignedShortTypeCopies( channelImgs, min, max ),
+				luts,
 				pWindowName,
 				pWindowWidth,
 				pWindowHeight,
@@ -540,7 +571,7 @@ public class ImgLib2ClearVolume {
 //				if ( pFloatType ) {
 //					value = pCaptureBuffers[ c ].getFloat( index );
 //				} else {
-					value = pCaptureBuffers[ c ].getChar( index );
+				value = pCaptureBuffers[ c ].getChar( index );
 //				}
 			} else {
 				throw new RuntimeException( "Capture feature does only support 1 or 2 bytes per voxel." );
@@ -551,5 +582,28 @@ public class ImgLib2ClearVolume {
 		}
 
 		return img;
+	}
+
+	/**
+	 * @param lut
+	 * @return
+	 */
+	public static TransferFunction getTransferFunctionFor( final ColorTable lut ) {
+		final TransferFunction1D tf = new TransferFunction1D();
+		for ( int i = 0; i < lut.getLength(); i++ ) {
+			final float[] comps = new float[] { 0f, 0f, 0f, 0f };
+			for ( int c = 0; c < lut.getComponentCount(); c++ ) {
+				comps[ c ] = lut.get( c, i ) / 255f;
+			}
+//			System.out.println(
+//					String.format(
+//							"(%.2f,%.2f,%.2f,%.2f)",
+//							comps[ 0 ],
+//							comps[ 1 ],
+//							comps[ 2 ],
+//							comps[ 3 ] ) );
+			tf.addPoint( comps[ 0 ], comps[ 1 ], comps[ 2 ], 1.0 /*comps[ 3 ]*/ );
+		}
+		return tf;
 	}
 }

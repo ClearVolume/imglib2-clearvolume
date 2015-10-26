@@ -3,15 +3,8 @@
  */
 package de.mpicbg.jug.plugins;
 
-import ij.ImagePlus;
-import ij.measure.Calibration;
-
 import java.awt.Image;
 import java.nio.ByteBuffer;
-
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.type.numeric.real.FloatType;
 
 import org.scijava.command.Command;
 import org.scijava.plugin.Menu;
@@ -22,6 +15,11 @@ import clearvolume.renderer.listeners.VolumeCaptureListener;
 import coremem.types.NativeTypeEnum;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
+import ij.ImagePlus;
+import ij.measure.Calibration;
+import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.real.FloatType;
 
 /**
  * @author jug
@@ -42,27 +40,28 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 	}
 
 	/**
-	 * @see clearvolume.renderer.listeners.VolumeCaptureListener#capturedVolume(java.nio.ByteBuffer[],
+	 * @see clearvolume.renderer.listeners.VolumeCaptureListener#capturedVolume(java.nio.ByteBuffer,
 	 *      coremem.types.NativeTypeEnum, long, long, long, double, double,
 	 *      double)
 	 */
 	@Override
 	public void capturedVolume(
-			final ByteBuffer[] pCaptureBuffers,
+			final ByteBuffer pCaptureBuffer,
 			final NativeTypeEnum pNativeTypeEnum,
 			final long pVolumeWidth,
 			final long pVolumeHeight,
 			final long pVolumeDepth,
 			final double pVoxelWidth,
 			final double pVoxelHeight,
-			final double pVoxelDepth ) {
+			final double pVoxelDepth ) 
+	{
 		final Img< FloatType > img =
 				ImgLib2ClearVolume.makeImgFromBytes(
 						pVolumeWidth,
 						pVolumeHeight,
 						pVolumeDepth,
 						pNativeTypeEnum,
-						pCaptureBuffers );
+						new ByteBuffer[]{pCaptureBuffer} );
 		final ImagePlus imagePlus = ImageJFunctions.show( img );
 		final Calibration calibration = imagePlus.getCalibration();
 		calibration.pixelWidth = pVoxelWidth;
