@@ -11,16 +11,68 @@
 	</parent>
  
 	<properties>
-		<scijava.jvm.version>1.7</scijava.jvm.version>    	
+		<scijava.jvm.version>1.8</scijava.jvm.version>    	
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
  
 	<artifactId>imglib-clearvolume</artifactId>
 	<version>1.0.0</version>
 
-	<name>display imglib2 images in clearvolume</name>
+    <name>display imglib2 images in clearvolume</name>
 
-	<dependencies>
+    <profiles>
+        <profile>
+            <id>development</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearvolume</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>cleargl</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearcuda</artifactId>
+                    <version>0.9-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>de.jcuda</groupId>
+                    <artifactId>jcuda-maven</artifactId>
+                    <version>6.5</version>
+                </dependency>
+
+            </dependencies>
+        </profile>
+        <profile>
+            <id>production</id>
+            <dependencies>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearvolume</artifactId>
+                    <version>1.0-STABLE</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>cleargl</artifactId>
+                    <version>1.0.1</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearcuda</artifactId>
+                    <version>0.9.2</version>
+                </dependency>
+
+            </dependencies>
+        </profile>
+    </profiles>
+    <dependencies>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
@@ -38,21 +90,16 @@
 			<artifactId>scifio</artifactId>
 		</dependency>
 		<dependency>
- 			<groupId>net.clearvolume</groupId>
- 			<artifactId>clearvolume</artifactId>
-			<version>1.0.4</version>
- 		</dependency>
- 		<dependency>
-         <groupId>net.clearvolume</groupId>
- 	        <artifactId>cleargl</artifactId>
-	        <version>1.0.1</version>
- 		</dependency>
- 		<dependency>
-         <groupId>net.clearvolume</groupId>
- 	        <artifactId>clearcuda</artifactId>
-	        <version>0.9.2</version>
- 		</dependency>
-		<dependency>
+            <groupId>org.saintandreas</groupId>
+            <artifactId>jovr</artifactId>
+            <version>0.4.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.saintandreas</groupId>
+            <artifactId>math</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+        <dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 			<scope>test</scope>
@@ -136,6 +183,7 @@
             		<include>net.clearvolume:clearvolume</include>
             		<include>org.jogamp.gluegen:gluegen-rt</include>
             		<include>org.jogamp.jogl:jogl-all</include>
+                    <include>de.jcuda:jcuda-maven</include>
             	</includes>
             </artifactSet>
             
