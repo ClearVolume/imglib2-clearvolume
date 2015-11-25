@@ -41,12 +41,12 @@
 		<dependency>
  			<groupId>net.clearvolume</groupId>
  			<artifactId>clearvolume</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
  	        <artifactId>cleargl</artifactId>
-	        <version>1.0.3</version>
+	        <version>1.0.4</version>
  		</dependency>
  		<dependency>
          <groupId>net.clearvolume</groupId>
@@ -132,10 +132,12 @@
             
             <artifactSet>
             	<includes>
-<!--             		<include>net.clearvolume:cleargl</include>
+            	<!--  
+             		<include>net.clearvolume:cleargl</include>
             		<include>net.clearvolume:clearcuda</include>
-            		<include>net.clearvolume:clearvolume</include> 
- -->
+            		<include>net.clearvolume:clearvolume</include>
+            	--> 
+
              		<include>org.jogamp.gluegen:gluegen-rt</include>
             		<include>org.jogamp.jogl:jogl-all</include>
             	</includes>
