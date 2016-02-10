@@ -79,11 +79,17 @@ public class ImgLib2ClearVolume {
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
+			long startTransfer = System.nanoTime();
 			lClearVolumeRenderer.setVolumeDataBuffer( channel,
 					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
 					TransferFunctions.getGradientForColor( channel ) );
@@ -171,11 +177,19 @@ public class ImgLib2ClearVolume {
 				bytes[ i + 1 ] = ( byte ) ( ( s >> 8 ) & 0xff );
 				i += 2;
 			}
+			long startTransfer = System.nanoTime();
+
 			lClearVolumeRenderer.setVolumeDataBuffer( channel,
 					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
+
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
 					getTransferFunctionForChannel( channel, channelImgs.size() ) );
@@ -271,12 +285,19 @@ public class ImgLib2ClearVolume {
 
 			final byte[] bytes =
 					channelImages.get( channel ).update( null ).getCurrentStorageArray();
+
+			long startTransfer = System.nanoTime();
 			lClearVolumeRenderer.setVolumeDataBuffer( 0, TimeUnit.MILLISECONDS,
 					channel,
 					ByteBuffer.wrap( bytes ),
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 
 			if ( luts != null && luts.size() > channel ) {
 				final ColorTable lut = luts.get( channel );
@@ -376,7 +397,13 @@ public class ImgLib2ClearVolume {
 				new ArrayImgFactory< ClearVolumeUnsignedShortType >().create( srcDims,
 						new ClearVolumeUnsignedShortType() );
 
+		long startCopy = System.nanoTime();
 		copy( source, target, new RealClearVolumeUnsignedShortConverter< ST >( min, max ) );
+		long endCopy = System.nanoTime();
+
+		if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+			System.out.println("PROFILING: ImgLib2 copy: " + (endCopy-startCopy)/1e6 + "ms");
+		}
 
 		return ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) target;
 	}
