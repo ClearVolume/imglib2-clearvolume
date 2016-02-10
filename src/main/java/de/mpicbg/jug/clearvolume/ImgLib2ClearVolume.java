@@ -15,11 +15,7 @@ import clearvolume.transferf.TransferFunction1D;
 import clearvolume.transferf.TransferFunctions;
 import coremem.types.NativeTypeEnum;
 import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
-import net.imglib2.Cursor;
-import net.imglib2.IterableInterval;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
-import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.*;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorTable;
 import net.imglib2.img.Img;
@@ -396,19 +392,37 @@ public class ImgLib2ClearVolume {
 			final IterableInterval< T2 > target,
 			final Converter< T1, T2 > converter ) {
 		// create a cursor that automatically localizes itself on every move
-		final Cursor< T2 > targetCursor = target.localizingCursor();
 		final RandomAccess< T1 > sourceRandomAccess = source.randomAccess();
+		final Cursor< T2 > targetCursor = target.cursor();
+		// final Cursor< T2 > targetCursor = target.localizingCursor();
 
-		// iterate over the input cursor
-		while ( targetCursor.hasNext() ) {
-			// move input cursor forward
-			targetCursor.fwd();
+		if (! (target.iterationOrder() instanceof FlatIterationOrder))
+		{
+			System.err.println("Iteration order of image is not FlatIterationOrder!");
+		}
 
-			// set the output cursor to the position of the input cursor
-			sourceRandomAccess.setPosition( targetCursor );
+		int w = (int)target.dimension( 0 );
+		int h = (int)target.dimension( 1 );
+		int d = (int)target.dimension( 2 );
 
-			// set converted value
-			converter.convert( sourceRandomAccess.get(), targetCursor.get() );
+		sourceRandomAccess.setPosition(0,0);
+		sourceRandomAccess.setPosition(0,1);
+		sourceRandomAccess.setPosition(0,2);
+
+		for ( int z = 0; z < d; ++z )
+		{
+			for ( int y = 0; y < h; ++y )
+			{
+				for ( int x = 0; x < w; ++x )
+				{
+					converter.convert( sourceRandomAccess.get(), targetCursor.next() );
+					sourceRandomAccess.fwd(0);
+				}
+				sourceRandomAccess.setPosition(0,0);
+				sourceRandomAccess.fwd(1);
+			}
+			sourceRandomAccess.setPosition(0,1);
+			sourceRandomAccess.fwd(2);
 		}
 	}
 
