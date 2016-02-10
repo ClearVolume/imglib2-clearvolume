@@ -11,17 +11,68 @@
 	</parent>
  
 	<properties>
+		<scijava.jvm.version>1.8</scijava.jvm.version>
 		<enforcer.skip>true</enforcer.skip>
-		<scijava.jvm.version>1.7</scijava.jvm.version>    	
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
  
 	<artifactId>imglib-clearvolume</artifactId>
 	<version>1.1.0</version>
 
-	<name>display imglib2 images in clearvolume</name>
+    <name>display imglib2 images in clearvolume</name>
 
-	<dependencies>
+    <profiles>
+        <profile>
+            <id>development</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearvolume</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>cleargl</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearcuda</artifactId>
+                    <version>0.9-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>de.jcuda</groupId>
+                    <artifactId>jcuda-maven</artifactId>
+                    <version>6.5</version>
+                </dependency>
+
+            </dependencies>
+        </profile>
+        <profile>
+            <id>production</id>
+            <dependencies>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearvolume</artifactId>
+                    <version>1.1.2</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>cleargl</artifactId>
+                    <version>1.0.4</version>
+                </dependency>
+                <dependency>
+                    <groupId>net.clearvolume</groupId>
+                    <artifactId>clearcuda</artifactId>
+                    <version>0.9.4</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+    <dependencies>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
@@ -38,26 +89,11 @@
 			<groupId>io.scif</groupId>
 			<artifactId>scifio</artifactId>
 		</dependency>
-		<dependency>
- 			<groupId>net.clearvolume</groupId>
- 			<artifactId>clearvolume</artifactId>
-			<version>1.1.2</version>
- 		</dependency>
- 		<dependency>
-         <groupId>net.clearvolume</groupId>
- 	        <artifactId>cleargl</artifactId>
-	        <version>1.0.4</version>
- 		</dependency>
- 		<dependency>
-         <groupId>net.clearvolume</groupId>
- 	        <artifactId>clearcuda</artifactId>
-	        <version>0.9.4</version>
- 		</dependency>
-		<dependency>
+        <dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 			<scope>test</scope>
-		</dependency>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.myfaces.core</groupId>
 			<artifactId>myfaces-impl</artifactId>
@@ -114,47 +150,7 @@
 	        </execution>
 	    </executions>
 		</plugin>
-
-      	<plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
-        
-        <executions>
-          <execution>
-          
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            
-            <configuration>
-            
-            <artifactSet>
-            	<includes>
-            	<!--  
-             		<include>net.clearvolume:cleargl</include>
-            		<include>net.clearvolume:clearcuda</include>
-            		<include>net.clearvolume:clearvolume</include>
-            	--> 
-
-             		<include>org.jogamp.gluegen:gluegen-rt</include>
-            		<include>org.jogamp.jogl:jogl-all</include>
-            	</includes>
-            </artifactSet>
-            
-			<relocations>
-                <relocation>
-                  <pattern>javax.media.opengl</pattern>
-                  <shadedPattern>cv.javax.media.opengl</shadedPattern>
-                </relocation>
-               </relocations>            
-            </configuration>
-            
-          </execution>
-        </executions>
-        </plugin>
-    </plugins>
+      </plugins>
 	</build>
   
 </project>
