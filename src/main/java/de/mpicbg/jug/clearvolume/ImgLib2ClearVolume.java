@@ -3,11 +3,6 @@
  */
 package de.mpicbg.jug.clearvolume;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunction;
@@ -31,6 +26,12 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jug
@@ -423,33 +424,57 @@ public class ImgLib2ClearVolume {
 		final Cursor< T2 > targetCursor = target.cursor();
 		// final Cursor< T2 > targetCursor = target.localizingCursor();
 
-		if (! (target.iterationOrder() instanceof FlatIterationOrder))
-		{
-			System.err.println("Iteration order of image is not FlatIterationOrder!");
-		}
+		final String copyAlgorithm = System.getProperty("ClearVolume.copyAlgorithm") != null ? System.getProperty("ClearVolume.copyAlgorithm") : "ImgLibbier";
 
-		int w = (int)target.dimension( 0 );
-		int h = (int)target.dimension( 1 );
-		int d = (int)target.dimension( 2 );
+		if(copyAlgorithm.compareTo("TripleFor") == 0) {
 
-		sourceRandomAccess.setPosition(0,0);
-		sourceRandomAccess.setPosition(0,1);
-		sourceRandomAccess.setPosition(0,2);
-
-		for ( int z = 0; z < d; ++z )
-		{
-			for ( int y = 0; y < h; ++y )
-			{
-				for ( int x = 0; x < w; ++x )
-				{
-					converter.convert( sourceRandomAccess.get(), targetCursor.next() );
-					sourceRandomAccess.fwd(0);
-				}
-				sourceRandomAccess.setPosition(0,0);
-				sourceRandomAccess.fwd(1);
+			if (!(target.iterationOrder() instanceof FlatIterationOrder)) {
+				System.err.println("Iteration order of image is not FlatIterationOrder!");
 			}
-			sourceRandomAccess.setPosition(0,1);
-			sourceRandomAccess.fwd(2);
+
+			int w = (int) target.dimension(0);
+			int h = (int) target.dimension(1);
+			int d = (int) target.dimension(2);
+
+			sourceRandomAccess.setPosition(0, 0);
+			sourceRandomAccess.setPosition(0, 1);
+			sourceRandomAccess.setPosition(0, 2);
+
+			for (int z = 0; z < d; ++z) {
+				for (int y = 0; y < h; ++y) {
+					for (int x = 0; x < w; ++x) {
+						converter.convert(sourceRandomAccess.get(), targetCursor.next());
+						sourceRandomAccess.fwd(0);
+					}
+					sourceRandomAccess.setPosition(0, 0);
+					sourceRandomAccess.fwd(1);
+				}
+				sourceRandomAccess.setPosition(0, 1);
+				sourceRandomAccess.fwd(2);
+			}
+		} else if(copyAlgorithm.compareTo("ImgLibbier") == 0) {
+			if (! (target.iterationOrder() instanceof FlatIterationOrder))
+			{
+				System.err.println("Iteration order of image is not FlatIterationOrder!");
+			}
+
+			final Cursor< T1 > sourceCursor = Views.flatIterable( Views.interval( source, target ) ).cursor();
+
+			while( targetCursor.hasNext() )
+				converter.convert( sourceCursor.next(), targetCursor.next() );
+
+		} else if(copyAlgorithm.compareTo("RecalculateCursor") == 0) {
+			// iterate over the input cursor
+			while ( targetCursor.hasNext() ) {
+				// move input cursor forward
+				targetCursor.fwd();
+
+				// set the output cursor to the position of the input cursor
+				sourceRandomAccess.setPosition( targetCursor );
+
+				// set converted value
+				converter.convert( sourceRandomAccess.get(), targetCursor.get() );
+			}
 		}
 	}
 
