@@ -581,7 +581,7 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T > >
 
 		// Toggle-buttons
 		// --------------
-		buttonToggleBox = new JButton( "Show/Unshow Box" );
+		buttonToggleBox = new JButton( "Show/Hide Box" );
 		buttonToggleBox.addActionListener( this );
 
 		shrinkingHelper = new JPanel( new BorderLayout() );
