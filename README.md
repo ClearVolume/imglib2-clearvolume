@@ -1,4 +1,7 @@
 # ImgLib2 support for ClearVolume
+
+[![Build Status](https://travis-ci.org/ClearVolume/imglib2-clearvolume.svg?branch=master)](https://travis-ci.org/ClearVolume/imglib2-clearvolume)
+
 This repository contains 
 * all functionalities to bridge from loaded imglib2 image containers to ClearVolume.
 * a ImageJ2/Fiji plugin that embedds [ClearVolume](https://bitbucket.org/clearvolume/clearvolume/wiki/Home) in a usable way.

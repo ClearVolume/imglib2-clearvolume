@@ -414,4 +414,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 		return 16;
 	}
 
+    @Override
+	public boolean valueEquals(final ClearVolumeUnsignedShortType t) {
+		return getValue() == t.getValue();
+	}
 }
