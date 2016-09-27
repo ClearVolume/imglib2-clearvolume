@@ -1,0 +1,6 @@
+language: java
+
+script: "mvn"
+
+jdk:
+  - oraclejdk8
