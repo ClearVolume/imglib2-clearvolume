@@ -4,4 +4,3 @@ script: "mvn"
 
 jdk:
   - oraclejdk8
-install: mvn install
