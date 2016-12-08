@@ -8,7 +8,7 @@ import java.util.List;
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunctions;
-import coremem.types.NativeTypeEnum;
+import coremem.enums.NativeTypeEnum;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 
 /**

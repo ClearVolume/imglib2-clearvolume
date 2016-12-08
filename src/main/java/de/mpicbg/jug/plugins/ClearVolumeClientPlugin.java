@@ -12,7 +12,7 @@ import org.scijava.plugin.Plugin;
 
 import clearvolume.network.client.main.ClearVolumeClientMain;
 import clearvolume.renderer.listeners.VolumeCaptureListener;
-import coremem.types.NativeTypeEnum;
+import coremem.enums.NativeTypeEnum;
 import de.mpicbg.jug.clearvolume.ImgLib2ClearVolume;
 import de.mpicbg.jug.clearvolume.gui.GenericClearVolumeGui;
 import ij.ImagePlus;

@@ -13,7 +13,7 @@ import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunction;
 import clearvolume.transferf.TransferFunction1D;
 import clearvolume.transferf.TransferFunctions;
-import coremem.types.NativeTypeEnum;
+import coremem.enums.NativeTypeEnum;
 import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
