@@ -17,7 +17,7 @@
 	</properties>
  
 	<artifactId>imglib-clearvolume</artifactId>
-	<version>1.3.3</version>
+	<version>1.3.9</version>
 
     <name>display imglib2 images in clearvolume</name>
 
@@ -46,7 +46,7 @@
                 <dependency>
                     <groupId>net.clearvolume</groupId>
                     <artifactId>clearvolume</artifactId>
-                    <version>1.3.3</version>
+                    <version>1.3.9</version>
                 </dependency>
                 <dependency>
                     <groupId>net.clearvolume</groupId>
