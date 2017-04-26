@@ -1,150 +1,231 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-		http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
- 	<parent>
-		<groupId>sc.fiji</groupId>
-		<artifactId>pom-fiji</artifactId>
-		<version>26.1.1</version>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>14.0.0</version>
+		<relativePath />
 	</parent>
- 
-	<properties>
-		<scijava.jvm.version>1.8</scijava.jvm.version>
-		<enforcer.skip>true</enforcer.skip>
-		<maven.javadoc.skip>true</maven.javadoc.skip>
-	</properties>
- 
+
+	<groupId>sc.fiji</groupId>
 	<artifactId>imglib-clearvolume</artifactId>
-	<version>1.3.20</version>
+	<version>1.3.21-SNAPSHOT</version>
 
-    <name>display imglib2 images in clearvolume</name>
+	<name>ClearVolume ImageJ plugins</name>
+	<description>ClearVolume plugins for ImageJ.</description>
+	<url>https://imagej.net/ClearVolume</url>
+	<inceptionYear>2015</inceptionYear>
+	<organization>
+		<name>Fiji</name>
+		<url>https://fiji.sc/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU General Public License v3+</name>
+			<url>https://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
-    <profiles>
-        <profile>
-            <id>development</id>
-            <dependencies>
-                <dependency>
-                    <groupId>net.clearvolume</groupId>
-                    <artifactId>clearvolume</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                    <groupId>net.clearvolume</groupId>
-                    <artifactId>cleargl</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>production</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>net.clearvolume</groupId>
-                    <artifactId>clearvolume</artifactId>
-                    <version>1.3.20</version>
-                </dependency>
-                <dependency>
-                    <groupId>net.clearvolume</groupId>
-                    <artifactId>cleargl</artifactId>
-                    <version>1.0.18</version>
-                </dependency>
-                <dependency>
-                    <groupId>net.clearvolume</groupId>
-                    <artifactId>clearcl</artifactId>
-                    <version>0.3.6</version>
-                </dependency>
-                 <dependency>
-                    <groupId>net.coremem</groupId>
-                    <artifactId>CoreMem</artifactId>
-                    <version>0.3.2</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-    <dependencies>
-    <dependency>
-      <groupId>com.miglayout</groupId>
-      <artifactId>miglayout</artifactId>
-      <version>3.7.4</version>
-    </dependency>
+	<mailingLists>
+		<mailingList>
+			<name>ImageJ Forum</name>
+			<archive>http://forum.imagej.net/</archive>
+		</mailingList>
+	</mailingLists>
+
+	<developers>
+		<developer>
+			<id>fjug</id>
+			<name>Florian Jug</name>
+			<url>https://imagej.net/User:Jug</url>
+			<roles>
+				<role>founder</role>
+				<role>lead</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>Loic Alain Royer</name>
+			<properties><id>royerloic</id></properties>
+		</contributor>
+		<contributor>
+			<name>Martin Weigert</name>
+			<properties><id>maweigert</id></properties>
+		</contributor>
+		<contributor>
+			<name>David Haberthuer</name>
+			<properties><id>habi</id></properties>
+		</contributor>
+		<contributor>
+			<name>Ulrik Guenther</name>
+			<url>https://imagej.net/User:Skalarproduktraum</url>
+			<properties><id>skalarproduktraum</id></properties>
+		</contributor>
+		<contributor>
+			<name>Curtis Rueden</name>
+			<url>https://imagej.net/User:Rueden</url>
+			<properties><id>ctrueden</id></properties>
+		</contributor>
+	</contributors>
+
+	<scm>
+		<connection>scm:git:git://github.com/ClearVolume/imglib2-clearvolume</connection>
+		<developerConnection>scm:git:git@github.com:ClearVolume/imglib2-clearvolume</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/ClearVolume/imglib2-clearvolume</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/ClearVolume/imglib2-clearvolume/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/ClearVolume/imglib2-clearvolume</url>
+	</ciManagement>
+
+	<properties>
+		<package-name>de.mpicbg.jug</package-name>
+		<license.licenseName>gpl_v3</license.licenseName>
+		<license.copyrightOwners>Max Planck Institute of Molecular
+Cell Biology and Genetics.</license.copyrightOwners>
+		<clearcl.version>0.3.6</clearcl.version>
+		<cleargl.version>1.0.18</cleargl.version>
+		<clearvolume.version>1.3.20</clearvolume.version>
+		<CoreMem.version>0.3.2</CoreMem.version>
+		<enforcer.skip>true</enforcer.skip>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>imagej.public</id>
+			<name>ImageJ</name>
+			<url>https://maven.imagej.net/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>bintray-CoreMem</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/clearcontrol/ClearControl</url>
+		</repository>
+		<repository>
+			<id>bintray-clearvolume-ClearVolume</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/clearvolume/ClearVolume</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- SciJava dependencies -->
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-common</artifactId>
+		</dependency>
+
+		<!-- ImgLib2 dependencies -->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
-		</dependency>
- 		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-ij</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-algorithm</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-ij</artifactId>
+		</dependency>
+
+		<!-- ImageJ dependencies -->
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-common</artifactId>
+		</dependency>
+
+		<!-- SCIFIO dependencies -->
+		<dependency>
 			<groupId>io.scif</groupId>
 			<artifactId>scifio</artifactId>
 		</dependency>
-        <dependency>
+
+		<!-- ClearVolume dependencies -->
+		<dependency>
+			<groupId>net.clearvolume</groupId>
+			<artifactId>clearvolume</artifactId>
+			<version>${clearvolume.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.apple</groupId>
+					<artifactId>AppleJavaExtensions</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.coremem</groupId>
+			<artifactId>CoreMem</artifactId>
+			<version>${CoreMem.version}</version>
+		</dependency>
+
+		<!-- Other dependencies -->
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout</artifactId>
+			<version>${miglayout.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all</artifactId>
+			<version>${jogl.version}</version>
+		</dependency>
+
+		<!-- Runtime scope dependencies -->
+		<dependency>
+			<groupId>net.clearvolume</groupId>
+			<artifactId>clearcl</artifactId>
+			<version>${clearcl.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.clearvolume</groupId>
+			<artifactId>cleargl</artifactId>
+			<version>${cleargl.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Provided scope dependencies -->
+		<dependency>
+			<groupId>com.yuvimasory</groupId>
+			<artifactId>orange-extensions</artifactId>
+			<version>1.3.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Test scope dependencies -->
+		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 			<scope>test</scope>
-        </dependency>
-		<dependency>
-			<groupId>org.apache.myfaces.core</groupId>
-			<artifactId>myfaces-impl</artifactId>
-			<version>2.2.4</version>
-			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.apple</groupId>
-			<artifactId>AppleJavaExtensions</artifactId>
-			<version>1.4</version>
-		</dependency>		
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>imagej.public</id>
-            <name>ImageJ</name>
-			<url>http://maven.imagej.net/content/groups/public</url>
-		</repository>
-		<repository>
-	        <id>bintray-CoreMem</id>
-	        <name>bintray</name>
-	        <url>https://dl.bintray.com/clearcontrol/ClearControl</url>
-		</repository>
-		<repository>
-	        <id>bintray-clearvolume-ClearVolume</id>
-	        <name>bintray</name>
-	        <url>https://dl.bintray.com/clearvolume/ClearVolume</url>
-		</repository>
-	</repositories>
-	
-
-	<build>
-	
-	<plugins>
-		<plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-javadoc-plugin</artifactId>
-	    <version>2.9</version>
-	    <executions>
-	        <execution>
-	            <id>attach-javadocs</id>
-	            <goals>
-	                <goal>jar</goal>
-	            </goals>
-	            <configuration>
-	              <failOnError>false</failOnError>
-	            </configuration>
-	        </execution>
-	    </executions>
-		</plugin>
-      </plugins>
-	</build>
-  
+	<profiles>
+		<profile>
+			<id>development</id>
+			<properties>
+				<clearvolume.version>LATEST</clearvolume.version>
+				<cleargl.version>LATEST</cleargl.version>
+			</properties>
+		</profile>
+	</profiles>
 </project>
