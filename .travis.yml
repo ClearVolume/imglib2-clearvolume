@@ -1,6 +1,10 @@
 language: java
-
-script: "mvn"
-
+script: mvn
 jdk:
-  - oraclejdk8
+- oraclejdk8
+deploy:
+  provider: bintray
+  file: descriptor.json
+  user: fjug
+  key:
+    secure: gSIgeixF0LbFk8MxdfA/pSu4XMXK8AgIcJ0gUy+MTh2lq8wXccI0Ber4CReZE7we5mu4Z2jZ6HeSW9Fm0S0SQ2NTTyObUFQ4LVv67Y/AyDb+ZIFnGFcUB+k0aH0OZEjUnZLWijpf2HSLzSt4iXqI39DGAs4UCG2YM1HMZkJou1c=
