@@ -1,10 +1,12 @@
 language: java
-script: mvn
-jdk:
-- oraclejdk8
-deploy:
-  provider: bintray
-  file: descriptor.json
-  user: fjug
-  key:
-    secure: gSIgeixF0LbFk8MxdfA/pSu4XMXK8AgIcJ0gUy+MTh2lq8wXccI0Ber4CReZE7we5mu4Z2jZ6HeSW9Fm0S0SQ2NTTyObUFQ4LVv67Y/AyDb+ZIFnGFcUB+k0aH0OZEjUnZLWijpf2HSLzSt4iXqI39DGAs4UCG2YM1HMZkJou1c=
+jdk: oraclejdk8
+branches:
+  only: master
+install: true
+script: ".travis/build.sh"
+after_success: ".travis/notify.sh Travis-Success"
+after_failure: ".travis/notify.sh Travis-Failure"
+env:
+  global:
+  - secure: WLOChxtA9VdcQzwFn2NvcfThDv0HUM1hDocMbCy72eeyb+mWHDfRDcPHe2ooq04t7S+zf7aGrKW6ubtrcfl0qXU60oKDceAmahPLxBu9coIrymL7MuECSZrcKE26nGNhOx7I2p+OvZ20K7GndXhUkg7bQ4YjKTi9CYqcmdCL148=
+  - secure: kE60o2uDie+ocDU7Qx3gIB9fQiqaUrHx+Li4iLa3x4TfoMKliZdax2i4+2OoYMYQ2R8A0CcDjaPHJEJX8LyTN2uH6kxj5wDnkeCPOjITo34mx8FJfjhWHRjs0BTmsjxQmdgsCCy7k53jYanOVCez7CL15GeoPPm+uESdSsZlp2c=
