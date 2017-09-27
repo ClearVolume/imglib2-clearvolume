@@ -64,6 +64,10 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 		final boolean isShowable = checkIfShowable( frame, imgPlus, true );
 		useCuda = !( !useCuda );// to avoid eclipse making this field 'final' -- stupid!
+		
+        // This makes newt windows NOT steal the app icon.
+        System.setProperty("newt.window.icons", "null,null");
+
 
 		if ( isShowable ) {
 			final Dimension screenDims = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
@@ -78,7 +82,8 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 					windowWidth,
 					windowHeight );
 
-			final Image finalicon = GenericClearVolumeGui.getCurrentAppIcon();
+//			final Image finalicon = GenericClearVolumeGui.getCurrentAppIcon();
+			System.setProperty("newt.window.icons", "null,null");
 
 			final ClearVolumeSplashFrame loadFrame = new ClearVolumeSplashFrame();
 
@@ -91,7 +96,7 @@ public class ClearVolumePlugin< T extends RealType< T > & NativeType< T >> imple
 
 			loadFrame.dispose();
 
-			GenericClearVolumeGui.setCurrentAppIcon( finalicon );
+//			GenericClearVolumeGui.setCurrentAppIcon( finalicon );
 		}
 	}
 

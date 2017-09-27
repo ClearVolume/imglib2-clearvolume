@@ -34,9 +34,11 @@ public class ClearVolumeClientPlugin implements Command, VolumeCaptureListener {
 	 */
 	@Override
 	public void run() {
-		final Image appicon = GenericClearVolumeGui.getCurrentAppIcon();
-
-		ClearVolumeClientMain.launchClientGUI( this, appicon, false );
+//		final Image appicon = GenericClearVolumeGui.getCurrentAppIcon();
+//		ClearVolumeClientMain.launchClientGUI( this, appicon, false );
+		
+		System.setProperty("newt.window.icons", "null,null");
+		ClearVolumeClientMain.launchClientGUI( this, null, false );
 	}
 
 	/**

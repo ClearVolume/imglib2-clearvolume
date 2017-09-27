@@ -46,7 +46,7 @@ public class testOpenClearVolumeOnToyVolume {
 	}
 
 	private static void showDrosoImg() {
-		final File file = new File( "/Users/jug/Desktop/droso.tif" );
+		final File file = new File( "/Users/jug/Desktop/ClearVolumeDatasetSamples/droso.tif" );
 
 		System.out.print( "\n >> Loading file '" + file.getName() + "' ..." );
 		final long tic = System.currentTimeMillis();
