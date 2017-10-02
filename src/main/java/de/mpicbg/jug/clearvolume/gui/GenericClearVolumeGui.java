@@ -149,6 +149,9 @@ public class GenericClearVolumeGui< T extends RealType< T > & NativeType< T > >
 			final int textureResolution,
 			final boolean useCuda ) {
 		super( true );
+		
+		// This makes newt windows NOT steal the app icon.
+        System.setProperty("newt.window.icons", "null,null");
 
 		this.imgPlus = imgPlus;
 		this.luts = luts;
