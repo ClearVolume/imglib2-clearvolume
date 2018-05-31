@@ -4,10 +4,10 @@
 package de.mpicbg.jug.clearvolume;
 
 import net.imglib2.img.NativeImg;
-import net.imglib2.img.NativeImgFactory;
 import net.imglib2.img.basictypeaccess.ByteAccess;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.NativeTypeFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Fraction;
@@ -311,24 +311,6 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * @see net.imglib2.type.NativeType#createSuitableNativeImg(net.imglib2.img.NativeImgFactory,
-	 *      long[])
-	 */
-	@Override
-	public NativeImg< ClearVolumeUnsignedShortType, ? > createSuitableNativeImg( final NativeImgFactory< ClearVolumeUnsignedShortType > storageFactory, final long[] dim ) {
-		// create the container
-		final NativeImg< ClearVolumeUnsignedShortType, ? extends ByteAccess > container = storageFactory.createByteInstance( dim, getEntitiesPerPixel() );
-
-		// create a Type that is linked to the container
-		final ClearVolumeUnsignedShortType linkedType = new ClearVolumeUnsignedShortType( container );
-
-		// pass it to the NativeContainer
-		container.setLinkedType( linkedType );
-
-		return container;
-	}
-
-	/**
 	 * @see net.imglib2.type.NativeType#duplicateTypeOnSameNativeImg()
 	 */
 	@Override
@@ -417,5 +399,12 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
     @Override
 	public boolean valueEquals(final ClearVolumeUnsignedShortType t) {
 		return getValue() == t.getValue();
+	}
+
+	private static final NativeTypeFactory< ClearVolumeUnsignedShortType, ByteAccess > typeFactory = NativeTypeFactory.BYTE( img -> new ClearVolumeUnsignedShortType( img ) );
+
+	@Override
+	public NativeTypeFactory< ClearVolumeUnsignedShortType, ? > getNativeTypeFactory() {
+		return typeFactory;
 	}
 }
