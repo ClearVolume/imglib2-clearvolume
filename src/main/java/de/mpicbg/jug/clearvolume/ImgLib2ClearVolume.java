@@ -3,11 +3,6 @@
  */
 package de.mpicbg.jug.clearvolume;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import clearvolume.renderer.ClearVolumeRendererInterface;
 import clearvolume.renderer.factory.ClearVolumeRendererFactory;
 import clearvolume.transferf.TransferFunction;
@@ -15,11 +10,7 @@ import clearvolume.transferf.TransferFunction1D;
 import clearvolume.transferf.TransferFunctions;
 import coremem.enums.NativeTypeEnum;
 import de.mpicbg.jug.imglib2.converter.RealClearVolumeUnsignedShortConverter;
-import net.imglib2.Cursor;
-import net.imglib2.IterableInterval;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
-import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.*;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorTable;
 import net.imglib2.img.Img;
@@ -35,6 +26,12 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jug
@@ -83,11 +80,17 @@ public class ImgLib2ClearVolume {
 		for ( int channel = 0; channel < channelImgs.size(); channel++ ) {
 //			lClearVolumeRenderer.setCurrentRenderLayer( channel );
 			final byte[] bytes = channelImgs.get( channel ).update( null ).getCurrentStorageArray();
+			long startTransfer = System.nanoTime();
 			lClearVolumeRenderer.setVolumeDataBuffer( channel,
 					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
 					TransferFunctions.getGradientForColor( channel ) );
@@ -175,11 +178,19 @@ public class ImgLib2ClearVolume {
 				bytes[ i + 1 ] = ( byte ) ( ( s >> 8 ) & 0xff );
 				i += 2;
 			}
+			long startTransfer = System.nanoTime();
+
 			lClearVolumeRenderer.setVolumeDataBuffer( channel,
 					ByteBuffer.wrap( bytes ),
 					channelImgs.get( channel ).dimension( 0 ),
 					channelImgs.get( channel ).dimension( 1 ),
 					channelImgs.get( channel ).dimension( 2 ) );
+
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 			lClearVolumeRenderer.setTransferFunction(
 					channel,
 					getTransferFunctionForChannel( channel, channelImgs.size() ) );
@@ -275,12 +286,19 @@ public class ImgLib2ClearVolume {
 
 			final byte[] bytes =
 					channelImages.get( channel ).update( null ).getCurrentStorageArray();
+
+			long startTransfer = System.nanoTime();
 			lClearVolumeRenderer.setVolumeDataBuffer( 0, TimeUnit.MILLISECONDS,
 					channel,
 					ByteBuffer.wrap( bytes ),
 					channelImages.get( channel ).dimension( 0 ),
 					channelImages.get( channel ).dimension( 1 ),
 					channelImages.get( channel ).dimension( 2 ) );
+			long endTransfer = System.nanoTime();
+
+			if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+				System.out.println("PROFILING: RAM -> GPU: " + bytes.length/1024/1024 + "MiB in " + (endTransfer - startTransfer)/1e6 + "ms");
+			}
 
 			if ( luts != null && luts.size() > channel ) {
 				final ColorTable lut = luts.get( channel );
@@ -380,7 +398,13 @@ public class ImgLib2ClearVolume {
 				new ArrayImgFactory< ClearVolumeUnsignedShortType >().create( srcDims,
 						new ClearVolumeUnsignedShortType() );
 
+		long startCopy = System.nanoTime();
 		copy( source, target, new RealClearVolumeUnsignedShortConverter< ST >( min, max ) );
+		long endCopy = System.nanoTime();
+
+		if(System.getProperty("ClearVolume.EnableProfiling") != null) {
+			System.out.println("PROFILING: ImgLib2 copy: " + (endCopy-startCopy)/1e6 + "ms");
+		}
 
 		return ( ArrayImg< ClearVolumeUnsignedShortType, ByteArray > ) target;
 	}
@@ -396,19 +420,61 @@ public class ImgLib2ClearVolume {
 			final IterableInterval< T2 > target,
 			final Converter< T1, T2 > converter ) {
 		// create a cursor that automatically localizes itself on every move
-		final Cursor< T2 > targetCursor = target.localizingCursor();
 		final RandomAccess< T1 > sourceRandomAccess = source.randomAccess();
+		final Cursor< T2 > targetCursor = target.cursor();
+		// final Cursor< T2 > targetCursor = target.localizingCursor();
 
-		// iterate over the input cursor
-		while ( targetCursor.hasNext() ) {
-			// move input cursor forward
-			targetCursor.fwd();
+		final String copyAlgorithm = System.getProperty("ClearVolume.copyAlgorithm") != null ? System.getProperty("ClearVolume.copyAlgorithm") : "ImgLibbier";
 
-			// set the output cursor to the position of the input cursor
-			sourceRandomAccess.setPosition( targetCursor );
+		if(copyAlgorithm.compareTo("TripleFor") == 0) {
 
-			// set converted value
-			converter.convert( sourceRandomAccess.get(), targetCursor.get() );
+			if (!(target.iterationOrder() instanceof FlatIterationOrder)) {
+				System.err.println("Iteration order of image is not FlatIterationOrder!");
+			}
+
+			int w = (int) target.dimension(0);
+			int h = (int) target.dimension(1);
+			int d = (int) target.dimension(2);
+
+			sourceRandomAccess.setPosition(0, 0);
+			sourceRandomAccess.setPosition(0, 1);
+			sourceRandomAccess.setPosition(0, 2);
+
+			for (int z = 0; z < d; ++z) {
+				for (int y = 0; y < h; ++y) {
+					for (int x = 0; x < w; ++x) {
+						converter.convert(sourceRandomAccess.get(), targetCursor.next());
+						sourceRandomAccess.fwd(0);
+					}
+					sourceRandomAccess.setPosition(0, 0);
+					sourceRandomAccess.fwd(1);
+				}
+				sourceRandomAccess.setPosition(0, 1);
+				sourceRandomAccess.fwd(2);
+			}
+		} else if(copyAlgorithm.compareTo("ImgLibbier") == 0) {
+			if (! (target.iterationOrder() instanceof FlatIterationOrder))
+			{
+				System.err.println("Iteration order of image is not FlatIterationOrder!");
+			}
+
+			final Cursor< T1 > sourceCursor = Views.flatIterable( Views.interval( source, target ) ).cursor();
+
+			while( targetCursor.hasNext() )
+				converter.convert( sourceCursor.next(), targetCursor.next() );
+
+		} else if(copyAlgorithm.compareTo("RecalculateCursor") == 0) {
+			// iterate over the input cursor
+			while ( targetCursor.hasNext() ) {
+				// move input cursor forward
+				targetCursor.fwd();
+
+				// set the output cursor to the position of the input cursor
+				sourceRandomAccess.setPosition( targetCursor );
+
+				// set converted value
+				converter.convert( sourceRandomAccess.get(), targetCursor.get() );
+			}
 		}
 	}
 
