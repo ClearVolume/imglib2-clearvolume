@@ -1,3 +1,5 @@
+[![](https://travis-ci.com/ClearVolume/imglib2-clearvolume.svg?branch=master)](https://travis-ci.com/ClearVolume/imglib2-clearvolume)
+
 # ImgLib2 support for ClearVolume
 
 [![Build Status](https://travis-ci.org/ClearVolume/imglib2-clearvolume.svg?branch=master)](https://travis-ci.org/ClearVolume/imglib2-clearvolume)

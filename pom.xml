@@ -103,6 +103,9 @@ Cell Biology and Genetics.</license.copyrightOwners>
 		<CoreMem.version>0.3.2</CoreMem.version>
 		<enforcer.skip>true</enforcer.skip>
 		<maven.javadoc.failOnError>false</maven.javadoc.failOnError>
+
+		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
+		<releaseProfiles>deploy-to-imagej</releaseProfiles>
 	</properties>
 
 	<repositories>
