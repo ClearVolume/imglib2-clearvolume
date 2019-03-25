@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>22.2.0</version>
+		<version>25.0.0</version>
 		<relativePath />
 	</parent>
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>imglib-clearvolume</artifactId>
-	<version>1.3.23-SNAPSHOT</version>
+	<version>1.4.1</version>
 
 	<name>ClearVolume ImageJ plugins</name>
 	<description>ClearVolume plugins for ImageJ.</description>
@@ -97,10 +97,10 @@
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Max Planck Institute of Molecular
 Cell Biology and Genetics.</license.copyrightOwners>
-		<clearcl.version>0.3.6</clearcl.version>
-		<cleargl.version>1.0.18</cleargl.version>
-		<clearvolume.version>1.3.20</clearvolume.version>
-		<CoreMem.version>0.3.2</CoreMem.version>
+		<clearcl.version>0.5.2</clearcl.version>
+		<cleargl.version>2.2.5</cleargl.version>
+		<clearvolume.version>1.4.1</clearvolume.version>
+		<coremem.version>0.4.6</coremem.version>
 		<enforcer.skip>true</enforcer.skip>
 		<maven.javadoc.failOnError>false</maven.javadoc.failOnError>
 
@@ -113,16 +113,6 @@ Cell Biology and Genetics.</license.copyrightOwners>
 			<id>imagej.public</id>
 			<name>ImageJ</name>
 			<url>https://maven.imagej.net/content/groups/public</url>
-		</repository>
-		<repository>
-			<id>bintray-CoreMem</id>
-			<name>bintray</name>
-			<url>https://dl.bintray.com/clearcontrol/ClearControl</url>
-		</repository>
-		<repository>
-			<id>bintray-clearvolume-ClearVolume</id>
-			<name>bintray</name>
-			<url>https://dl.bintray.com/clearvolume/ClearVolume</url>
 		</repository>
 	</repositories>
 
@@ -176,9 +166,9 @@ Cell Biology and Genetics.</license.copyrightOwners>
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>net.coremem</groupId>
-			<artifactId>CoreMem</artifactId>
-			<version>${CoreMem.version}</version>
+			<groupId>net.clearcontrol</groupId>
+			<artifactId>coremem</artifactId>
+			<version>${coremem.version}</version>
 		</dependency>
 
 		<!-- Other dependencies -->
