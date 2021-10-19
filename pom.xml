@@ -40,14 +40,17 @@
 		<developer>
 			<id>fjug</id>
 			<name>Florian Jug</name>
-			<url>https://imagej.net/User:Jug</url>
+			<url>https://imagej.net/people/fjug</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
-				<role>developer</role>
-				<role>debugger</role>
-				<role>reviewer</role>
-				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>ctrueden</id>
+			<name>Curtis Rueden</name>
+			<url>https://imagej.net/people/ctrueden</url>
+			<roles>
 				<role>maintainer</role>
 			</roles>
 		</developer>
@@ -55,10 +58,12 @@
 	<contributors>
 		<contributor>
 			<name>Loic Alain Royer</name>
+			<url>https://imagej.net/people/royerloic</url>
 			<properties><id>royerloic</id></properties>
 		</contributor>
 		<contributor>
 			<name>Martin Weigert</name>
+			<url>https://imagej.net/people/maweigert</url>
 			<properties><id>maweigert</id></properties>
 		</contributor>
 		<contributor>
@@ -67,13 +72,8 @@
 		</contributor>
 		<contributor>
 			<name>Ulrik Guenther</name>
-			<url>https://imagej.net/User:Skalarproduktraum</url>
+			<url>https://imagej.net/people/skalarproduktraum</url>
 			<properties><id>skalarproduktraum</id></properties>
-		</contributor>
-		<contributor>
-			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
-			<properties><id>ctrueden</id></properties>
 		</contributor>
 	</contributors>
 
