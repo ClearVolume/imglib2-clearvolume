@@ -6,22 +6,27 @@ package de.mpicbg.jug.clearvolume;
 import net.imglib2.img.NativeImg;
 import net.imglib2.img.basictypeaccess.ByteAccess;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
+import net.imglib2.type.Index;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.NativeTypeFactory;
-import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.AbstractRealType;
 import net.imglib2.util.Fraction;
 import net.imglib2.util.Util;
 
 
 /**
- * @author jug
+ * Unsigned 16-bit integer type backed by ClearVolume.
+ * 
+ * @author Florian Jug
  */
-public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsignedShortType >, NativeType< ClearVolumeUnsignedShortType > {
+public class ClearVolumeUnsignedShortType extends AbstractRealType< ClearVolumeUnsignedShortType > implements NativeType< ClearVolumeUnsignedShortType > {
 
-	int i = 0;
+	private static final NativeTypeFactory< ClearVolumeUnsignedShortType, ByteAccess > typeFactory = NativeTypeFactory.BYTE( img -> new ClearVolumeUnsignedShortType( img ) );
 
-	final protected NativeImg< ?, ? extends ByteAccess > img;
+	protected final NativeImg< ?, ? extends ByteAccess > img;
+
+	private final Index i = new Index();
 
 	// the DataAccess that holds the information
 	protected ByteAccess dataAccess;
@@ -68,8 +73,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	protected short getValue() {
-		final byte b1 = dataAccess.getValue( 2 * i );
-		final byte b2 = dataAccess.getValue( 2 * i + 1 );
+		final byte b1 = dataAccess.getValue( 2 * index().get() );
+		final byte b2 = dataAccess.getValue( 2 * index().get() + 1 );
 		return ( short ) ( b1 * 0xff + b2 );
 	}
 
@@ -82,8 +87,8 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	protected void setValue( final short f ) {
-		dataAccess.setValue( 2*i, ( byte ) ( f & 0xff ) );
-		dataAccess.setValue( 2 * i + 1, ( byte ) ( ( f >> 8 ) & 0xff ) );
+		dataAccess.setValue( 2*index().get(), ( byte ) ( f & 0xff ) );
+		dataAccess.setValue( 2 * index().get() + 1, ( byte ) ( ( f >> 8 ) & 0xff ) );
 	}
 
 	/**
@@ -103,22 +108,6 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * @see net.imglib2.type.numeric.ComplexType#getImaginaryDouble()
-	 */
-	@Override
-	public double getImaginaryDouble() {
-		return 0.;
-	}
-
-	/**
-	 * @see net.imglib2.type.numeric.ComplexType#getImaginaryFloat()
-	 */
-	@Override
-	public float getImaginaryFloat() {
-		return 0f;
-	}
-
-	/**
 	 * @see net.imglib2.type.numeric.ComplexType#setReal(float)
 	 */
 	@Override
@@ -132,24 +121,6 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	@Override
 	public void setReal( final double f ) {
 		set( ( int ) f );
-	}
-
-	/**
-	 * Does not apply -- does nothing!
-	 * 
-	 * @see net.imglib2.type.numeric.ComplexType#setImaginary(float)
-	 */
-	@Override
-	public void setImaginary( final float f ) {
-	}
-
-	/**
-	 * Does not apply -- does nothing!
-	 * 
-	 * @see net.imglib2.type.numeric.ComplexType#setImaginary(double)
-	 */
-	@Override
-	public void setImaginary( final double f ) {
 	}
 
 	/**
@@ -187,22 +158,6 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	@Override
 	public double getPowerDouble() {
 		return Math.abs( getRealDouble() );
-	}
-
-	/**
-	 * @see net.imglib2.type.numeric.ComplexType#getPhaseFloat()
-	 */
-	@Override
-	public float getPhaseFloat() {
-		return 0;
-	}
-
-	/**
-	 * @see net.imglib2.type.numeric.ComplexType#getPhaseDouble()
-	 */
-	@Override
-	public double getPhaseDouble() {
-		return 0;
 	}
 
 	/**
@@ -271,22 +226,6 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 	}
 
 	/**
-	 * @see net.imglib2.type.operators.SetOne#setOne()
-	 */
-	@Override
-	public void setOne() {
-		set( 1 );
-	}
-
-	/**
-	 * @see net.imglib2.type.operators.SetZero#setZero()
-	 */
-	@Override
-	public void setZero() {
-		set( 0 );
-	}
-
-	/**
 	 * @see net.imglib2.type.operators.MulFloatingPoint#mul(float)
 	 */
 	@Override
@@ -320,32 +259,32 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 
 	@Override
 	public void updateIndex( final int index ) {
-		i = index;
+		index().set(index);
 	}
 
 	@Override
 	public int getIndex() {
-		return i;
+		return index().get();
 	}
 
 	@Override
 	public void incIndex() {
-		++i;
+		index().inc();
 	}
 
 	@Override
 	public void incIndex( final int increment ) {
-		i += increment;
+		index().inc(increment);
 	}
 
 	@Override
 	public void decIndex() {
-		--i;
+		index().dec();
 	}
 
 	@Override
 	public void decIndex( final int decrement ) {
-		i -= decrement;
+		index().dec(decrement);
 	}
 
 	/**
@@ -396,15 +335,18 @@ public class ClearVolumeUnsignedShortType implements RealType< ClearVolumeUnsign
 		return 16;
 	}
 
-    @Override
+	@Override
 	public boolean valueEquals(final ClearVolumeUnsignedShortType t) {
 		return getValue() == t.getValue();
 	}
 
-	private static final NativeTypeFactory< ClearVolumeUnsignedShortType, ByteAccess > typeFactory = NativeTypeFactory.BYTE( img -> new ClearVolumeUnsignedShortType( img ) );
-
 	@Override
 	public NativeTypeFactory< ClearVolumeUnsignedShortType, ? > getNativeTypeFactory() {
 		return typeFactory;
+	}
+
+	@Override
+	public Index index() {
+		return i;
 	}
 }
