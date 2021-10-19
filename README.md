@@ -1,8 +1,6 @@
-[![](https://travis-ci.com/ClearVolume/imglib2-clearvolume.svg?branch=master)](https://travis-ci.com/ClearVolume/imglib2-clearvolume)
+[![](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build-main.yml/badge.svg)](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build-main.yml)
 
 # ImgLib2 support for ClearVolume
-
-[![Build Status](https://travis-ci.org/ClearVolume/imglib2-clearvolume.svg?branch=master)](https://travis-ci.org/ClearVolume/imglib2-clearvolume)
 
 This repository contains 
 * all functionalities to bridge from loaded imglib2 image containers to ClearVolume.
