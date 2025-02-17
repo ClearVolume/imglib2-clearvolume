@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>31.1.0</version>
+		<version>40.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -187,12 +187,10 @@ Cell Biology and Genetics.</license.copyrightOwners>
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
-			<version>${miglayout-swing.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jogamp.jogl</groupId>
 			<artifactId>jogl-all</artifactId>
-			<version>${jogl.version}</version>
 		</dependency>
 
 		<!-- Runtime scope dependencies -->
