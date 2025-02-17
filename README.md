@@ -1,4 +1,4 @@
-[![](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build-main.yml/badge.svg)](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build-main.yml)
+[![Build Status](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build.yml/badge.svg)](https://github.com/ClearVolume/imglib2-clearvolume/actions/workflows/build.yml)
 
 # ImgLib2 support for ClearVolume
 
