@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>40.0.0</version>
+		<version>44.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -115,6 +115,14 @@ Cell Biology and Genetics.</license.copyrightOwners>
 		<clearcl.version>0.5.2</clearcl.version>
 		<clearvolume.version>1.4.2</clearvolume.version>
 		<orange-extensions.version>1.3.0</orange-extensions.version>
+
+		<!--
+		NB: pom-scijava 40.0.0 pins net.clearcontrol:coremem to 0.4.8, which
+		was never deployed to the SciJava Maven repo (only 0.4.5 is published).
+		Override back to the latest published version to avoid a missing-POM
+		warning and runtime resolution failure.
+		-->
+		<coremem.version>0.4.5</coremem.version>
 	</properties>
 
 	<repositories>
@@ -181,6 +189,7 @@ Cell Biology and Genetics.</license.copyrightOwners>
 		<dependency>
 			<groupId>net.clearcontrol</groupId>
 			<artifactId>coremem</artifactId>
+			<version>${coremem.version}</version>
 		</dependency>
 
 		<!-- Other dependencies -->
